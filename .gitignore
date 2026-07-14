@@ -1,0 +1,23 @@
+node_modules/
+.next/
+*.pyc
+__pycache__/
+.pytest_cache/
+.env
+.env.local
+*.log
+dist/
+build/
+*.egg-info/
+.vercel/
+.railway/
+
+# Large binaries / build artifacts
+cos/apps/web/dist-electron/
+cos/apps/web/node_modules/
+cos/apps/web/.next/
+cos/apps/web/dist/
+cos/apps/web/out/
+
+# Harness internal
+.harness/

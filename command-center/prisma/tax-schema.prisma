@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model TaxCalendar {
+  id             String   @id @default(uuid()) @db.Uuid
+  year           Int
+  month          Int
+  obligationType String   // "IVA", "IR", "ATS", "RETENCIONES", "RIMPE"
+  formCode       String   // "104", "101", "ATS", etc.
+  description    String   @db.Text
+  dueDateByDigit Json     // {"0": 10, "1": 12, ...} día del mes por 9no dígito
+  baseLegal      String?  // Artículo LRTI correspondiente
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([year, month, obligationType])
+  @@map("tax_calendar")
+}
+
+model TaxObligation {
+  id          String       @id @default(uuid()) @db.Uuid
+  companyId   String       @map("company_id") @db.Uuid
+  calendarId  String       @map("calendar_id") @db.Uuid
+  calendar    TaxCalendar  @relation(fields: [calendarId], references: [id])
+  period      String       // "2025-01", "2025-02", etc.
+  status      String       @default("pending") // "pending", "filed", "overdue", "exempt"
+  filedAt     DateTime?    @map("filed_at")
+  amount      Decimal?     @db.Decimal(16, 2)
+  notes       String?      @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([companyId, status])
+  @@map("tax_obligations")
+}
+
+model TaxProfile {
+  id            String   @id @default(uuid()) @db.Uuid
+  companyId     String   @map("company_id") @db.Uuid
+  ruc           String   @unique
+  businessName  String   @map("business_name")
+  regime        String   // "general", "rimpe_popular", "rimpe_emprendedor", "special"
+  annualRevenue Decimal? @map("annual_revenue") @db.Decimal(16, 2)
+  employees     Int?
+  sector        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("tax_profiles")
+}

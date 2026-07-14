@@ -1,0 +1,66 @@
+version: "3.9"
+name: cos-ecuador
+
+services:
+  integration:
+    build: ./services/integration
+    ports: ["8000:8000"]
+    environment:
+      - SERVICE_NAME=integration
+    depends_on: []
+
+  tax-engine:
+    build: ./services/tax-engine
+    ports: ["8001:8001"]
+
+  macro-service:
+    build: ./services/macro-service
+    ports: ["8002:8002"]
+
+  finance:
+    build: ./services/finance
+    ports: ["8003:8003"]
+
+  clients:
+    build: ./services/clients
+    ports: ["8004:8004"]
+
+  documents:
+    build: ./services/documents
+    ports: ["8005:8005"]
+
+  disaster-recovery:
+    build: ./services/disaster-recovery
+    ports: ["8006:8006"]
+
+  plugin-registry:
+    build: ./services/plugin-registry
+    ports: ["8007:8007"]
+
+  public-api:
+    build: ./services/public-api
+    ports: ["8008:8008"]
+
+  ai-orchestrator:
+    build: ./services/ai-orchestrator
+    ports: ["8009:8009"]
+
+  analytics-advanced:
+    build: ./services/analytics-advanced
+    ports: ["8010:8010"]
+
+  security:
+    build: ./services/security
+    ports: ["8011:8011"]
+
+  bi:
+    build: ./services/bi
+    ports: ["8012:8012"]
+
+  command-center:
+    build: ./command-center
+    ports: ["3000:3000"]
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - integration
