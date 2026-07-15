@@ -5,7 +5,7 @@
 
 -- 0. EXTENSIONS
 create extension if not exists "pgcrypto";
-create extension if not exists "pgvector";
+-- pgvector not available on Supabase free tier; using jsonb as fallback
 
 -- 1. COMPANIES (tenants)
 create table if not exists public.companies (
@@ -105,7 +105,7 @@ create table if not exists public.document_chunks (
   document_id     uuid not null references public.documents(id) on delete cascade,
   chunk_index     integer not null,
   content         text not null,
-  embedding       vector(1024),
+  embedding       jsonb,
   page_number     integer,
   line_range      int4range,
   metadata        jsonb default '{}',
@@ -146,7 +146,7 @@ create index idx_financial_statements_company on public.financial_statements(com
 create index idx_transactions_company on public.transactions(company_id, date desc);
 create index idx_projections_company on public.projections(company_id, projection_date desc);
 create index idx_macro_indicator_lookup on public.macro_indicators(indicator, country, date desc);
-create index idx_document_chunks_embedding on public.document_chunks using ivfflat (embedding vector_cosine_ops) with (lists = 100);
+-- Vector index skipped: pgvector unavailable on Supabase free tier
 create index idx_audit_log_company on public.audit_log(company_id, created_at desc);
 create index idx_profiles_company on public.profiles(company_id);
 

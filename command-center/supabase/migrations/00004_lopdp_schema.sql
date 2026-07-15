@@ -39,7 +39,7 @@ CREATE TYPE security_category AS ENUM (
 
 CREATE TABLE data_processing_activities (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id UUID NOT NULL REFERENCES tenants(id),
+  tenant_id UUID NOT NULL REFERENCES companies(id),
   name TEXT NOT NULL,
   description TEXT,
   purpose TEXT NOT NULL,
@@ -66,7 +66,7 @@ CREATE INDEX idx_dpa_tenant_status ON data_processing_activities(tenant_id, stat
 
 CREATE TABLE consents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id UUID NOT NULL REFERENCES tenants(id),
+  tenant_id UUID NOT NULL REFERENCES companies(id),
   data_subject_id TEXT,
   data_subject_email TEXT,
   data_subject_cedula TEXT,
@@ -125,7 +125,7 @@ CREATE INDEX idx_security_activity_category ON security_measures(activity_id, ca
 
 CREATE TABLE arco_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id UUID NOT NULL REFERENCES tenants(id),
+  tenant_id UUID NOT NULL REFERENCES companies(id),
   requester_email TEXT NOT NULL,
   requester_cedula TEXT,
   requester_name TEXT NOT NULL,
