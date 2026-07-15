@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "seed": "npx tsx scripts/seed.ts",
     "validate:gate": "npx tsx scripts/validate-gate-0-1.ts",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
