@@ -54,8 +54,7 @@ const OFFLINE_PAGE = `<!DOCTYPE html>
 
 const PRECACHE_URLS = [
   '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
+  '/icon.svg',
 ]
 
 self.addEventListener('install', (event) => {
@@ -110,7 +109,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (request.mode === 'navigate') {
-    event.respondWith(staleWhileRevalidate(request, PAGES_CACHE))
+    if (url.pathname.startsWith('/auth') || url.pathname.startsWith('/dashboard')) {
+      event.respondWith(networkFirstWithFallback(request, PAGES_CACHE))
+    } else {
+      event.respondWith(staleWhileRevalidate(request, PAGES_CACHE))
+    }
     return
   }
 
@@ -131,8 +134,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body,
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
+    icon: '/icon.svg',
+    badge: '/icon.svg',
     data: { url: data.url ?? '/' },
     vibrate: [200, 100, 200],
   }

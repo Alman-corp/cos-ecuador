@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description:
     "Plataforma de inteligencia financiera y consultoría estratégica — Toma de decisiones basada en datos en tiempo real.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.svg",
   },
   manifest: "/manifest.json",
   other: {

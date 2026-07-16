@@ -43,6 +43,8 @@ export default function LoginPage() {
     if (error) {
       setStatus("error")
       setMessage(error.message)
+    } else {
+      window.location.href = "/dashboard"
     }
   }
 
@@ -138,15 +140,17 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-4 border-t border-surface-800 pt-4">
-            <Button
-              onClick={handleDevLogin}
-              variant="outline"
-              className="w-full border-dashed border-accent-500/30 text-accent-400 hover:bg-accent-500/10"
-            >
-              🔑 Acceso sin Supabase (modo dev)
-            </Button>
-          </div>
+          {process.env.NODE_ENV !== "production" && (
+            <div className="mt-4 border-t border-surface-800 pt-4">
+              <Button
+                onClick={handleDevLogin}
+                variant="outline"
+                className="w-full border-dashed border-accent-500/30 text-accent-400 hover:bg-accent-500/10"
+              >
+                Acceso sin Supabase (modo dev)
+              </Button>
+            </div>
+          )}
 
           <p className="mt-6 text-center text-xs text-surface-500">
             {mode === "password" ? (

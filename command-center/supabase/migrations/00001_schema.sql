@@ -272,11 +272,17 @@ returns trigger
 language plpgsql
 security definer set search_path = ''
 as $$
+declare
+  cid uuid;
 begin
+  cid := (new.raw_user_meta_data->>'company_id')::uuid;
+  if cid is null then
+    select id into cid from public.companies order by created_at asc limit 1;
+  end if;
   insert into public.profiles (id, company_id, full_name, role)
   values (
     new.id,
-    (new.raw_user_meta_data->>'company_id')::uuid,
+    cid,
     new.raw_user_meta_data->>'full_name',
     coalesce(new.raw_user_meta_data->>'role', 'viewer')
   );
