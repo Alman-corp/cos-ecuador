@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Plus, Trash2, Calculator, FileDown, FileText, Info } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { IvaSimulator } from '../components/IvaSimulator'
 
 type VentaRow = {
   id: number
@@ -92,10 +94,22 @@ export default function SimuladorIVAPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Calculator className="h-8 w-8" />
-          Simulador de IVA — Formulario 104
+          Simulador de IVA
         </h1>
         <p className="text-muted-foreground mt-1">Simula tu declaración mensual de IVA según ventas y compras gravadas</p>
       </div>
+
+      <Tabs defaultValue="detallado" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="detallado">Formulario 104 (Detallado)</TabsTrigger>
+          <TabsTrigger value="rapido">Simulador Rápido</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="rapido" className="mt-6">
+          <IvaSimulator />
+        </TabsContent>
+
+        <TabsContent value="detallado" className="mt-6 space-y-6">
 
       <div className="flex flex-wrap gap-4 mb-6 items-end">
         <div>
@@ -353,6 +367,8 @@ export default function SimuladorIVAPage() {
           Los valores calculados son referenciales. Siempre consulte con su contador.
         </AlertDescription>
       </Alert>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
