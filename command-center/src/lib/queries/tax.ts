@@ -1,4 +1,54 @@
-import { useQuery, useMutation } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+
+export function useObligationsSummary(companyId: string) {
+  return useQuery({
+    queryKey: ["tax-obligations-summary", companyId],
+    queryFn: async () => {
+      const res = await fetch(`/api/tax/obligations?companyId=${companyId}&summary=true`)
+      if (!res.ok) throw new Error("Error cargando resumen")
+      return res.json()
+    },
+    refetchInterval: 30000,
+  })
+}
+
+export function useObligations(companyId: string, status?: string) {
+  return useQuery({
+    queryKey: ["tax-obligations", companyId, status],
+    queryFn: async () => {
+      const params = new URLSearchParams({ companyId })
+      if (status) params.set("status", status)
+      const res = await fetch(`/api/tax/obligations?${params}`)
+      if (!res.ok) throw new Error("Error cargando obligaciones")
+      return res.json()
+    },
+  })
+}
+
+export function useUpdateObligation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (vars: {
+      obligationId: string
+      status: string
+      filedAt?: string
+      amount?: number
+      notes?: string
+    }) => {
+      const res = await fetch("/api/tax/obligations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(vars),
+      })
+      if (!res.ok) throw new Error("Error actualizando obligación")
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tax-obligations"] })
+      queryClient.invalidateQueries({ queryKey: ["tax-obligations-summary"] })
+    },
+  })
+}
 
 export function useFiscalCalendar(ninthDigit?: number, filters?: { from?: string; to?: string; status?: string }) {
   return useQuery({
