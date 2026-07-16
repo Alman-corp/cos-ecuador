@@ -35,6 +35,10 @@ function getDevUser(request: NextRequest) {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  if (pathname === "/manifest.json" || pathname === "/sw.js" || pathname === "/icon.svg") {
+    return NextResponse.next({ request })
+  }
+
   if (pathname.startsWith("/api/")) {
     if (pathname.startsWith("/api/health") || pathname.startsWith("/api/live") || pathname.startsWith("/api/ready")) {
       return NextResponse.next({ request })
@@ -139,6 +143,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest\\.json|sw\\.js|icon\\.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }
