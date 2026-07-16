@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import structlog
 
-from app.api.routes import iva, retenciones, renta, anexos, cruces
+from app.api.routes import iva, retenciones, renta, anexos, cruces, facturacion
 from app.config import settings
 
 logger = structlog.get_logger()
@@ -26,6 +26,7 @@ app.include_router(retenciones.router, prefix="/api/v1/retenciones", tags=["Rete
 app.include_router(renta.router, prefix="/api/v1/renta", tags=["Renta"])
 app.include_router(anexos.router, prefix="/api/v1/anexos", tags=["Anexos"])
 app.include_router(cruces.router, prefix="/api/v1/cruces", tags=["Cruces"])
+app.include_router(facturacion.router, prefix="/api/v1/facturacion", tags=["Facturacion Electronica"])
 
 
 @app.get("/health")

@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
       { source: "/api/v1/renta/:path*", destination: `${taxServiceUrl}/api/v1/renta/:path*` },
       { source: "/api/v1/anexos/:path*", destination: `${taxServiceUrl}/api/v1/anexos/:path*` },
       { source: "/api/v1/cruces/:path*", destination: `${taxServiceUrl}/api/v1/cruces/:path*` },
+      { source: "/api/v1/facturacion/:path*", destination: `${taxServiceUrl}/api/v1/facturacion/:path*` },
+      { source: "/api/facturacion/:path*", destination: `${taxServiceUrl}/api/v1/facturacion/:path*` },
     ]
   },
   async headers() {
