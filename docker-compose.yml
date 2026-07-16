@@ -94,6 +94,13 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  document-processor:
+    build: ./services/document-processor
+    ports: ["8013:8003"]
+    environment:
+      - DOC_OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DOC_OPENAI_EMBEDDING_MODEL=text-embedding-3-large
+
   command-center:
     build: ./command-center
     ports: ["3000:3000"]

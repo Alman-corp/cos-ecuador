@@ -2546,3 +2546,104 @@ model UsageRecord {
   @@index([companyId, referenceType, referenceId])
   @@map("usage_records")
 }
+
+// ============================================================
+// 28. DOCUMENT RAG & CITATIONS
+// ============================================================
+
+model Document {
+  id          String   @id @default(uuid()) @db.Uuid
+  companyId   String   @map("company_id") @db.Uuid
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title       String
+  fileName    String?  @map("file_name")
+  fileType    String?  @map("file_type")
+  fileSize    Int?     @map("file_size")
+  source      String   @default("upload")
+  category    String?
+  lawType     String?  @map("law_type")
+  lawNumber   String?  @map("law_number")
+  article     String?  @map("article")
+  year        Int?
+  issuer      String?
+  status      String   @default("PENDING")
+  error       String?
+  chunkCount  Int      @default(0) @map("chunk_count")
+  metadata    Json?    @default("{}")
+  uploadedBy  String?  @map("uploaded_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  chunks      DocumentChunk[]
+
+  @@index([companyId, status])
+  @@index([companyId, category])
+  @@index([companyId, lawType])
+  @@index([companyId, createdAt])
+  @@map("documents")
+}
+
+model DocumentChunk {
+  id          String    @id @default(uuid()) @db.Uuid
+  documentId  String    @map("document_id") @db.Uuid
+  document    Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  companyId   String    @map("company_id") @db.Uuid
+  index       Int
+  content     String    @db.Text
+  tokens      Int       @default(0)
+  embedding   Unsupported("vector(1536)")?
+  metadata    Json?     @default("{}")
+  lawType     String?   @map("law_type")
+  article     String?   @map("article")
+  hasISD      Boolean   @default(false) @map("has_isd")
+  isd         Json?     @default("{}")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  citations   Citation[]
+
+  @@index([documentId, index])
+  @@index([companyId])
+  @@index([companyId, lawType])
+  @@index([companyId, hasISD])
+  @@index([companyId])
+  @@map("document_chunks")
+}
+
+model Citation {
+  id          String        @id @default(uuid()) @db.Uuid
+  chunkId     String        @map("chunk_id") @db.Uuid
+  chunk       DocumentChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+  companyId   String        @map("company_id") @db.Uuid
+  sessionId   String        @map("session_id")
+  messageId   String?       @map("message_id")
+  relevance   Float         @default(0.0)
+  content     String        @db.Text
+  lawType     String?       @map("law_type")
+  article     String?       @map("article")
+  metadata    Json?         @default("{}")
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@index([companyId, sessionId])
+  @@index([chunkId])
+  @@map("citations")
+}
+
+model AgentFeedback {
+  id         String   @id @default(uuid()) @db.Uuid
+  companyId  String   @map("company_id") @db.Uuid
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  sessionId  String   @map("session_id")
+  messageId  String?  @map("message_id")
+  rating     Int
+  category   String?
+  comment    String?  @db.Text
+  metadata   Json?    @default("{}")
+  createdBy  String?  @map("created_by") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@index([companyId, createdAt])
+  @@index([companyId, rating])
+  @@map("agent_feedback")
+}

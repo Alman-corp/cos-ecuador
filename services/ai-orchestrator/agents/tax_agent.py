@@ -20,6 +20,7 @@ from tools.tributario_tools import (
     get_client_tax_profile,
     simulate_tax_scenario,
 )
+from tools.rag_tool import search_tax_documents
 
 
 class TaxAgentState(TypedDict):
@@ -52,6 +53,7 @@ REGLAS ESTRICTAS:
 5. Responde en español de Ecuador, formal pero accesible.
 6. Si el usuario pregunta sobre obligaciones próximas, usa SIEMPRE el tool get_fiscal_calendar.
 7. Para cálculos, usa las tools en lugar de calcular mentalmente.
+8. Para preguntas sobre artículos específicos de la ley o interpretación normativa, usa search_tax_documents (RAG con ISD) para obtener citas precisas.
 
 FORMATO DE RESPUESTA:
 - Usa markdown con headings
@@ -74,6 +76,7 @@ FORMATO DE RESPUESTA:
             search_sri_legislation,
             get_client_tax_profile,
             simulate_tax_scenario,
+            search_tax_documents,
         ]
 
         self.llm_with_tools = self.llm.bind_tools(self.tools)
