@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
-import { X, CheckCheck, Bell, AlertTriangle, FileText, CreditCard, Info } from "lucide-react"
+import React, { useEffect, useRef, useState } from "react"
+import { X, CheckCheck, Bell, AlertTriangle, FileText, CreditCard, Info, Wifi, WifiOff } from "lucide-react"
 import { useNotifications, useMarkAsRead } from "@/lib/hooks/use-notifications"
+import { useNotificationsWS } from "@/lib/hooks/use-notifications-ws"
 import { useSession } from "@/lib/stores/session-store"
 
 interface NotificationItem {
@@ -98,29 +99,44 @@ export function NotificationCenter({ onClose }: { onClose?: () => void }) {
     limit: 20,
   })
   const markAsRead = useMarkAsRead()
+  const { latestNotification, connected } = useNotificationsWS()
+  const prevNotifId = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (latestNotification && latestNotification.id !== prevNotifId.current) {
+      prevNotifId.current = latestNotification.id
+    }
+  }, [latestNotification])
 
   const notifications = data?.data ?? []
 
   return (
     <div className="w-96 rounded-xl border border-surface-600 bg-surface-800 shadow-2xl">
       <div className="flex items-center justify-between border-b border-surface-700 px-4 py-3">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setTab("all")}
-            className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
-              tab === "all" ? "bg-primary-600 text-white" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            Todas
-          </button>
-          <button
-            onClick={() => setTab("unread")}
-            className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
-              tab === "unread" ? "bg-primary-600 text-white" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            No leídas
-          </button>
+        <div className="flex items-center gap-3">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setTab("all")}
+              className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
+                tab === "all" ? "bg-primary-600 text-white" : "text-gray-400 hover:text-white"
+              }`}
+            >
+              Todas
+            </button>
+            <button
+              onClick={() => setTab("unread")}
+              className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
+                tab === "unread" ? "bg-primary-600 text-white" : "text-gray-400 hover:text-white"
+              }`}
+            >
+              No leídas
+            </button>
+          </div>
+          {connected ? (
+            <Wifi className="h-3 w-3 text-green-400" title="Tiempo real" />
+          ) : (
+            <WifiOff className="h-3 w-3 text-yellow-400" title="Sin conexión en tiempo real" />
+          )}
         </div>
         {onClose && (
           <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">

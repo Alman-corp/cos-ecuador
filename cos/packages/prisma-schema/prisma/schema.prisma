@@ -2421,7 +2421,64 @@ model NotificationDelivery {
 }
 
 // ============================================================
-// 26. BILLING ENHANCED CONTEXT
+// 26. DIGEST & WEBHOOK CONTEXT
+// ============================================================
+
+model DigestQueue {
+  id           String   @id @default(uuid()) @db.Uuid
+  companyId    String   @map("company_id") @db.Uuid
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId       String   @map("user_id") @db.Uuid
+  eventType    String   @map("event_type")
+  payload      Json     @default("{}")
+  frequency    String   @default("DAILY_DIGEST")
+  scheduledFor DateTime @map("scheduled_for")
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now()) @map("created_at")
+  processedAt  DateTime? @map("processed_at")
+
+  @@index([scheduledFor, status])
+  @@index([companyId, userId, frequency])
+  @@map("digest_queue")
+}
+
+model DigestLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  companyId      String   @map("company_id") @db.Uuid
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId         String   @map("user_id") @db.Uuid
+  frequency      String   @default("DAILY_DIGEST")
+  digestDate     DateTime @map("digest_date")
+  eventsCount    Int      @default(0) @map("events_count")
+  channels       Json     @default("[]")
+  deliveryTimeMs Int      @default(0) @map("delivery_time_ms")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([companyId, userId, digestDate])
+  @@map("digest_logs")
+}
+
+model WebhookSubscription {
+  id             String    @id @default(uuid()) @db.Uuid
+  companyId      String    @map("company_id") @db.Uuid
+  company        Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  url            String
+  eventTypes     Json      @default("[]") @map("event_types")
+  signingSecret  String    @map("signing_secret")
+  isActive       Boolean   @default(true) @map("is_active")
+  lastTriggeredAt DateTime? @map("last_triggered_at")
+  lastStatus     Int?      @map("last_status")
+  description    String?
+  createdBy      String?   @map("created_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([companyId, isActive])
+  @@map("webhook_subscriptions")
+}
+
+// ============================================================
+// 27. BILLING ENHANCED CONTEXT
 // ============================================================
 
 model CreditConsumption {

@@ -72,7 +72,7 @@ export function useNotifications(
     queryFn: () =>
       fetchNotifications(user!.id, companyId, options),
     enabled: !!user?.id && !!companyId,
-    refetchInterval: 30_000,
+    staleTime: 60_000,
   })
 }
 
@@ -83,7 +83,7 @@ export function useUnreadCount(companyId: string) {
     queryKey: ["notifications-unread", user?.id, companyId],
     queryFn: () => fetchUnreadCount(user!.id, companyId),
     enabled: !!user?.id && !!companyId,
-    refetchInterval: 15_000,
+    staleTime: 60_000,
   })
 }
 

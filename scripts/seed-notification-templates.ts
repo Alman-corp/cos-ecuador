@@ -251,6 +251,115 @@ Días restantes: {{daysRemaining}}</p>
     ],
     is_system: true,
   },
+  {
+    template_type: "DAILY_DIGEST",
+    channel: "email",
+    name: "Resumen diario COS",
+    subject: "📋 Resumen COS del día — {{summary.totalNotifications}} eventos",
+    body: `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f172a;color:#e2e8f0;padding:24px;">
+  <div style="max-width:640px;margin:0 auto;background:#1e293b;border-radius:12px;padding:32px;">
+    <h1 style="color:#fff;margin:0 0 8px;">☀️ Buenos días, {{userName}}</h1>
+    <p style="color:#94a3b8;margin:0 0 32px;">Esto es lo que pasó en tu consultora {{period}}</p>
+    
+    {{#if summary.upcomingObligations}}
+    <div style="background:#7f1d1d;border-left:4px solid #ef4444;padding:16px;border-radius:8px;margin-bottom:24px;">
+      <h3 style="color:#fca5a5;margin:0 0 8px;">🚨 {{summary.upcomingObligations}} obligaciones SRI próximas</h3>
+      {{#each obligations}}
+      <div style="margin-top:8px;">
+        <strong>{{fiscal_calendar.obligation_type}}</strong> — Vence {{due_date}}
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+    
+    {{#if summary.invoicesIssued}}
+    <div style="background:#064e3b;border-left:4px solid #10b981;padding:16px;border-radius:8px;margin-bottom:24px;">
+      <h3 style="color:#6ee7b7;margin:0 0 8px;">✅ {{summary.invoicesIssued}} facturas autorizadas</h3>
+      <p style="margin:4px 0;color:#d1fae5;">Total facturado: <strong>${{summary.totalAmount}}</strong></p>
+    </div>
+    {{/if}}
+    
+    {{#if summary.totalNotifications}}
+    <h3 style="color:#fff;">🔔 Otras notificaciones</h3>
+    {{#each notifications}}
+    <div style="padding:12px;border-bottom:1px solid #334155;">
+      <strong>{{title}}</strong>
+      <p style="color:#94a3b8;margin:4px 0;font-size:14px;">{{body}}</p>
+    </div>
+    {{/each}}
+    {{/if}}
+    
+    <div style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid #334155;">
+      <a href="{{portalUrl}}" style="display:inline-block;padding:12px 32px;background:#3b82f6;color:white;text-decoration:none;border-radius:8px;">Ver en COS →</a>
+    </div>
+  </div>
+</body>
+</html>`,
+    variables: [
+      { key: "userName", label: "Nombre del usuario", type: "string", required: true },
+      { key: "period", label: "Período (hoy/esta semana)", type: "string", required: true },
+      { key: "summary", label: "Resumen con conteos", type: "string", required: true },
+      { key: "notifications", label: "Lista de notificaciones", type: "string", required: false },
+      { key: "obligations", label: "Lista de obligaciones", type: "string", required: false },
+      { key: "invoices", label: "Lista de facturas", type: "string", required: false },
+    ],
+    is_system: true,
+  },
+  {
+    template_type: "WEEKLY_DIGEST",
+    channel: "email",
+    name: "Resumen semanal COS",
+    subject: "📋 Resumen COS semanal — {{summary.totalNotifications}} eventos",
+    body: `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f172a;color:#e2e8f0;padding:24px;">
+  <div style="max-width:640px;margin:0 auto;background:#1e293b;border-radius:12px;padding:32px;">
+    <h1 style="color:#fff;margin:0 0 8px;">📊 Resumen Semanal COS</h1>
+    <p style="color:#94a3b8;margin:0 0 32px;">{{userName}}, esto pasó {{period}}</p>
+    
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;">
+      <div style="background:#1e3a5f;padding:16px;border-radius:8px;text-align:center;">
+        <div style="font-size:24px;font-weight:bold;color:#60a5fa;">{{summary.totalNotifications}}</div>
+        <div style="font-size:12px;color:#94a3b8;">Notificaciones</div>
+      </div>
+      <div style="background:#5f1e1e;padding:16px;border-radius:8px;text-align:center;">
+        <div style="font-size:24px;font-weight:bold;color:#fca5a5;">{{summary.upcomingObligations}}</div>
+        <div style="font-size:12px;color:#94a3b8;">Obligaciones</div>
+      </div>
+      <div style="background:#1e5f2e;padding:16px;border-radius:8px;text-align:center;">
+        <div style="font-size:24px;font-weight:bold;color:#6ee7b7;">{{summary.invoicesIssued}}</div>
+        <div style="font-size:12px;color:#94a3b8;">Facturas</div>
+      </div>
+    </div>
+    
+    {{#if obligations}}
+    <h3 style="color:#fff;">📅 Próximas obligaciones</h3>
+    {{#each obligations}}
+    <div style="padding:8px 0;border-bottom:1px solid #334155;">
+      <strong>{{fiscal_calendar.obligation_type}}</strong> — Vence {{due_date}}
+    </div>
+    {{/each}}
+    {{/if}}
+    
+    <div style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid #334155;">
+      <a href="{{portalUrl}}" style="display:inline-block;padding:12px 32px;background:#3b82f6;color:white;text-decoration:none;border-radius:8px;">Ir al Dashboard →</a>
+    </div>
+  </div>
+</body>
+</html>`,
+    variables: [
+      { key: "userName", label: "Nombre del usuario", type: "string", required: true },
+      { key: "period", label: "Período", type: "string", required: true },
+      { key: "summary", label: "Resumen con conteos", type: "string", required: true },
+      { key: "notifications", label: "Lista de notificaciones", type: "string", required: false },
+      { key: "obligations", label: "Lista de obligaciones", type: "string", required: false },
+    ],
+    is_system: true,
+  },
 ]
 
 async function seed() {

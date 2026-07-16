@@ -31,6 +31,7 @@ const PAGE_NAMES: Record<string, string> = {
   "/consultor/tributario/anexos": "Anexos / ATS",
   "/consultor/tributario/cruces": "Cruces",
   "/notifications": "Notificaciones",
+  "/configuracion/webhooks": "Webhooks",
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
