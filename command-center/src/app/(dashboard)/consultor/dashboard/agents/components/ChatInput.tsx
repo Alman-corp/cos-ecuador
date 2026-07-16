@@ -5,6 +5,7 @@ import { Send, Square, Paperclip, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { AgentSelector, AgentType } from './AgentSelector';
 
 interface Props {
   onSend: (message: string, options?: any) => Promise<void>;
@@ -15,6 +16,7 @@ interface Props {
 
 export function ChatInput({ onSend, onStop, isStreaming, disabled }: Props) {
   const [message, setMessage] = useState('');
+  const [selectedAgent, setSelectedAgent] = useState<AgentType>('auto');
   const [attachments, setAttachments] = useState<File[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -22,7 +24,10 @@ export function ChatInput({ onSend, onStop, isStreaming, disabled }: Props) {
   const handleSubmit = async () => {
     if (!message.trim() || isStreaming || disabled) return;
 
-    await onSend(message.trim(), { documentIds: [] });
+    await onSend(message.trim(), {
+      agentHint: selectedAgent === 'auto' ? undefined : selectedAgent,
+      documentIds: [],
+    });
 
     setMessage('');
     setAttachments([]);
@@ -49,7 +54,16 @@ export function ChatInput({ onSend, onStop, isStreaming, disabled }: Props) {
 
   return (
     <div className="border-t bg-background p-4">
-      <div className="max-w-4xl mx-auto space-y-2">
+      <div className="max-w-4xl mx-auto space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Agente:</span>
+            <AgentSelector selected={selectedAgent} onChange={setSelectedAgent} disabled={isStreaming} />
+          </div>
+          {selectedAgent !== 'auto' && (
+            <Badge variant="outline" className="text-xs">Modo forzado: {selectedAgent}</Badge>
+          )}
+        </div>
         {attachments.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {attachments.map((file, idx) => (

@@ -10,6 +10,10 @@ from langchain_core.messages import HumanMessage
 from langchain_core.callbacks import AsyncCallbackHandler
 
 from app.agents.tax_agent import TaxAgent
+from app.agents.financial_agent import FinancialAgent
+from app.agents.legal_agent import LegalAgent
+from app.agents.commercial_agent import CommercialAgent
+from app.agents.router import RouterAgent
 from app.session_manager import SessionManager
 
 logger = structlog.get_logger()
@@ -76,8 +80,12 @@ class StreamingCallbackHandler(AsyncCallbackHandler):
 
 class StreamingOrchestrator:
     def __init__(self):
+        self.router = RouterAgent()
         self.agents = {
+            "financial": FinancialAgent(),
             "tax": TaxAgent(),
+            "legal": LegalAgent(),
+            "commercial": CommercialAgent(),
         }
         self.session_mgr = SessionManager()
 
@@ -96,12 +104,27 @@ class StreamingOrchestrator:
 
         history = await self.session_mgr.get_history(session_id, limit=10)
 
-        agent_type = agent_hint or "tax"
+        # Router: clasificar intención
+        yield {
+            "type": "thinking",
+            "agent": "Router",
+            "content": "Clasificando tu pregunta...",
+        }
+
+        intent_result = await self.router.classify(
+            query=query, history=history, hint=agent_hint,
+        )
+        agent_type = intent_result["agent"]
+        confidence = intent_result["confidence"]
+        reasoning = intent_result.get("reasoning", "")
+
+        if agent_type == "general":
+            agent_type = agent_hint or "tax"
 
         yield {
             "type": "thinking",
             "agent": "Router",
-            "content": f"Ruta seleccionada: **{agent_type}**",
+            "content": f"Ruta: **{agent_type}** (confianza: {confidence:.0%})",
         }
 
         agent = self.agents.get(agent_type)

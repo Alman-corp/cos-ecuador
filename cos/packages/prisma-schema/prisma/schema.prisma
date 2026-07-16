@@ -2724,3 +2724,151 @@ model ToolCallLog {
   @@index([companyId, toolName])
   @@map("tool_call_logs")
 }
+
+// ============================================================
+// 30. MOTOR LEGAL — CONTRATOS Y OBLIGACIONES (M11)
+// ============================================================
+
+model Contract {
+  id                String               @id @default(uuid()) @db.Uuid
+  companyId         String               @map("company_id") @db.Uuid
+  company           Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  clientId          String               @map("client_id") @db.Uuid
+  client            Client               @relation(fields: [clientId], references: [id])
+  title             String
+  contractType      String               @map("contract_type")
+  contractNumber    String?              @unique @map("contract_number")
+  startDate         DateTime             @map("start_date")
+  endDate           DateTime             @map("end_date")
+  signedAt          DateTime?            @map("signed_at")
+  contractValue     Decimal?             @map("contract_value") @db.Decimal(14, 2)
+  currency          String               @default("USD")
+  status            String               @default("DRAFT")
+  autoRenew         Boolean              @default(false) @map("auto_renew")
+  renewalNoticeDays Int                  @default(30) @map("renewal_notice_days")
+  parties           Json                 @default("[]")
+  documentId        String?              @map("document_id")
+  signedByUs        Boolean              @default(false) @map("signed_by_us")
+  signedByThem      Boolean              @default(false) @map("signed_by_them")
+  executiveSummary  String?              @map("executive_summary")
+  riskScore         Int?                 @map("risk_score")
+  criticalClauses   Json?                @map("critical_clauses")
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+
+  obligations       ContractObligation[]
+  versions          ContractVersion[]
+
+  @@index([companyId, clientId])
+  @@index([companyId, status])
+  @@index([companyId, endDate])
+  @@map("contracts")
+}
+
+model ContractObligation {
+  id                  String    @id @default(uuid()) @db.Uuid
+  companyId           String    @map("company_id") @db.Uuid
+  contractId          String    @map("contract_id") @db.Uuid
+  contract            Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  description         String
+  responsibleParty    String    @map("responsible_party")
+  obligationType      String    @map("obligation_type")
+  dueDate             DateTime  @map("due_date")
+  recurrence          String    @default("ONCE")
+  amount              Decimal?  @db.Decimal(14, 2)
+  status              String    @default("PENDING")
+  notes               String?
+  evidenceDocumentId  String?   @map("evidence_document_id")
+  completedAt         DateTime? @map("completed_at")
+  alertSent5Days      Boolean   @default(false) @map("alert_sent_5_days")
+  alertSent1Day       Boolean   @default(false) @map("alert_sent_1_day")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@index([companyId, status, dueDate])
+  @@index([companyId, contractId])
+  @@map("contract_obligations")
+}
+
+model ContractVersion {
+  id              String    @id @default(uuid()) @db.Uuid
+  companyId       String    @map("company_id") @db.Uuid
+  contractId      String    @map("contract_id") @db.Uuid
+  contract        Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  versionNumber   Int       @map("version_number")
+  documentId      String    @map("document_id")
+  changeSummary   String?   @map("change_summary")
+  changedBy       String    @map("changed_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@unique([contractId, versionNumber])
+  @@map("contract_versions")
+}
+
+// ============================================================
+// 31. MOTOR COMERCIAL — CRM Y PIPELINE
+// ============================================================
+
+model SalesOpportunity {
+  id                String             @id @default(uuid()) @db.Uuid
+  companyId         String             @map("company_id") @db.Uuid
+  company           Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  clientId          String?            @map("client_id") @db.Uuid
+  client            Client?            @relation(fields: [clientId], references: [id])
+  title             String
+  description       String?
+  stage             String             @default("LEAD")
+  estimatedValue    Decimal?           @map("estimated_value") @db.Decimal(14, 2)
+  probability       Int                @default(20)
+  weightedValue     Decimal?           @map("weighted_value") @db.Decimal(14, 2)
+  expectedCloseDate DateTime?          @map("expected_close_date")
+  serviceType       String?            @map("service_type")
+  assignedUserId    String?            @map("assigned_user_id")
+  source            String             @default("OTHER")
+  lastInteraction   String?            @map("last_interaction")
+  lastInteractionAt DateTime?          @map("last_interaction_at")
+  lostReason        String?            @map("lost_reason")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  activities        SalesActivity[]
+
+  @@index([companyId, stage])
+  @@index([companyId, assignedUserId])
+  @@index([companyId, expectedCloseDate])
+  @@map("sales_opportunities")
+}
+
+model SalesActivity {
+  id              String           @id @default(uuid()) @db.Uuid
+  companyId       String           @map("company_id") @db.Uuid
+  opportunityId   String           @map("opportunity_id") @db.Uuid
+  opportunity     SalesOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  activityType    String           @map("activity_type")
+  subject         String
+  notes           String?
+  scheduledAt     DateTime?        @map("scheduled_at")
+  completedAt     DateTime?        @map("completed_at")
+  createdBy       String           @map("created_by")
+  createdAt       DateTime         @default(now()) @map("created_at")
+
+  @@index([companyId, opportunityId])
+  @@map("sales_activities")
+}
+
+model ConsultantMatch {
+  id              String    @id @default(uuid()) @db.Uuid
+  companyId       String    @map("company_id") @db.Uuid
+  company         Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  clientId        String    @map("client_id") @db.Uuid
+  consultantId    String    @map("consultant_id")
+  matchScore      Int       @map("match_score")
+  reasons         Json      @default("[]")
+  skills          String[]
+  consultantLoad  Int       @map("consultant_load")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@unique([companyId, clientId, consultantId])
+  @@index([companyId, matchScore])
+  @@map("consultant_matches")
+}
