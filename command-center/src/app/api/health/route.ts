@@ -9,6 +9,12 @@ export async function GET() {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     memory: process.memoryUsage(),
+    env: {
+      supabase_url_set: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      supabase_anon_key_set: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      supabase_url_prefix: (process.env.NEXT_PUBLIC_SUPABASE_URL || "").substring(0, 30),
+      anon_key_prefix: (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").substring(0, 20),
+    },
     checks: {
       api: { status: "ok", latency: "0ms" },
       auth: { status: "ok", mode: "dev" },
