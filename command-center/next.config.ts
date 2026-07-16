@@ -6,6 +6,16 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  async rewrites() {
+    const taxServiceUrl = process.env.TAX_SERVICE_URL || "http://localhost:8002"
+    return [
+      { source: "/api/v1/iva/:path*", destination: `${taxServiceUrl}/api/v1/iva/:path*` },
+      { source: "/api/v1/retenciones/:path*", destination: `${taxServiceUrl}/api/v1/retenciones/:path*` },
+      { source: "/api/v1/renta/:path*", destination: `${taxServiceUrl}/api/v1/renta/:path*` },
+      { source: "/api/v1/anexos/:path*", destination: `${taxServiceUrl}/api/v1/anexos/:path*` },
+      { source: "/api/v1/cruces/:path*", destination: `${taxServiceUrl}/api/v1/cruces/:path*` },
+    ]
+  },
   async headers() {
     return [
       {
