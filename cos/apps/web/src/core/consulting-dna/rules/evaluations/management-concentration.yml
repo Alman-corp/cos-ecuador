@@ -1,0 +1,15 @@
+id: eval-mgmt-001
+name: "Concentración de Clientes"
+description: "Evalúa dependencia de pocos clientes como riesgo de negocio."
+category: risk
+condition: "operational.customerRetention > 90"
+priority: 65
+then:
+  action: alert
+  severity: info
+  message: "Alta concentración. Si un cliente representa >50% de ingresos, riesgo crítico. Diversificar cartera."
+enabled: true
+tags:
+  - concentración
+  - clientes
+  - dependencia

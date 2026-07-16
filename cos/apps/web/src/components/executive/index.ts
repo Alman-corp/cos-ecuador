@@ -1,0 +1,1 @@
+export { ExecutiveBriefPanel } from "./ExecutiveBriefPanel"

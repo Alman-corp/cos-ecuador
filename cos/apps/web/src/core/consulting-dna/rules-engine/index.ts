@@ -1,0 +1,8 @@
+export { evaluateExpression } from "./expression-evaluator"
+export { RuleEngine } from "./rule-engine"
+export { ConsultingDNACalculator } from "./calculator"
+export { YamlRulesRepository } from "./yaml-repository"
+export { PrismaRulesRepository } from "./prisma-repository"
+export type { DeclarativeRule, ClientFacts, EvaluationResult, RuleActionType, RuleCategory, RuleSeverity } from "./types"
+export type { RuleEngineEvent } from "./rule-engine"
+export type { RulesRepository } from "./calculator"

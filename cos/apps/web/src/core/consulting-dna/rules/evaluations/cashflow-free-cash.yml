@@ -1,0 +1,15 @@
+id: eval-cash-001
+name: "Flujo de Caja Libre"
+description: "Evalúa si la empresa genera efectivo después de inversiones."
+category: risk
+condition: "financials.cashflow.operating < -financials.cashflow.investing"
+priority: 85
+then:
+  action: alert
+  severity: warning
+  message: "Flujo de caja libre negativo. Revisar CAPEX y capital de trabajo. Si persiste, riesgo de liquidez."
+enabled: true
+tags:
+  - flujo-caja
+  - fcf
+  - inversion

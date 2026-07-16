@@ -1,0 +1,102 @@
+# Evaluation Harness — DeepSeek V4 Flash para COS Ecuador
+# Archivo de configuración
+# Copia este archivo a config.local.yaml y ajusta los valores
+
+# === Modelos a evaluar ===
+models:
+  - name: "deepseek-v4-flash"
+    provider: "deepseek"
+    base_url: "https://api.deepseek.com"
+    api_key_env: "DEEPSEEK_API_KEY"
+    default_model: "deepseek-chat"
+    reasoning_efforts: ["non-think", "think-high", "think-max"]
+    max_tokens: 4096
+    temperature: 0.3
+
+  - name: "gpt-4o-mini"
+    provider: "openai"
+    base_url: "https://api.openai.com/v1"
+    api_key_env: "OPENAI_API_KEY"
+    default_model: "gpt-4o-mini"
+    max_tokens: 4096
+    temperature: 0.3
+
+  - name: "claude-haiku-4"
+    provider: "anthropic"
+    base_url: "https://api.anthropic.com"
+    api_key_env: "ANTHROPIC_API_KEY"
+    default_model: "claude-haiku-4-20250514"
+    max_tokens: 4096
+    temperature: 0.3
+
+# === Configuración de la evaluación ===
+evaluation:
+  questions_dir: "./questions"
+  results_dir: "./results"
+  reports_dir: "./reports"
+
+  # Ejecuta las preguntas en este orden de modelos
+  # Para el smoke test inicial, solo se ejecuta deepseek-v4-flash
+  models_to_run: ["deepseek-v4-flash"]
+
+  # Concurrencia (1 = secuencial, 5 = paralelo)
+  max_concurrent: 3
+
+  # Guardar respuestas completas
+  save_full_responses: true
+
+  # Guardar tokens y costos
+  track_costs: true
+
+# === Criterios de aprobación ===
+thresholds:
+  # Pass rate mínimo por dificultad (para GO/NO-GO)
+  by_difficulty:
+    simple: 0.90      # >= 90%
+    medium: 0.80      # >= 80%
+    complex: 0.70     # >= 70%
+    reasoning: 0.60   # >= 60%
+
+  # Pass rate mínimo por categoría
+  by_category:
+    es_general: 0.85
+    clasificacion_docs: 0.85
+    extraccion_datos: 0.90
+    resumen_balance: 0.80
+    tributario_ec: 0.75  # Más estricto: normativa específica
+    clausulas_legales: 0.75
+    diagnostico_financiero: 0.70
+    multi_hop_rag: 0.70
+    edge_cases: 0.80
+
+  # Latencia objetivo por reasoning effort
+  latency_p95_ms:
+    non-think: 1500
+    think-high: 4000
+    think-max: 8000
+
+  # Costo máximo por 1K tokens mezclados
+  max_cost_per_1k_tokens_usd: 0.30
+
+# === Scoring ===
+# Cómo evaluar la respuesta del modelo vs ground_truth
+# Opciones:
+#   - "exact_match": solo si la respuesta es exactamente igual
+#   - "substring": si ground_truth aparece en la respuesta
+#   - "semantic": usar embedding similarity (umbral configurable)
+#   - "llm_judge": un LLM diferente evalúa la calidad (1-5)
+#   - "regex": si la respuesta matchea un patrón regex
+scoring:
+  default_method: "llm_judge"
+  llm_judge_model: "gpt-4o-mini"
+  llm_judge_prompt_path: "./prompts/judge_prompt.txt"
+
+  # Override por categoría
+  overrides:
+    extraccion_datos: "regex"  # Para extracción, regex es más estricto
+    es_general: "substring"    # Para gramática, substring funciona
+
+# === Logging ===
+logging:
+  level: "INFO"
+  file: "./logs/eval.log"

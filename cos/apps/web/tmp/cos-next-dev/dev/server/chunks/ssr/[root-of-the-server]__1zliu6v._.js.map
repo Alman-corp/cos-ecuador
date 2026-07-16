@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///mnt/c/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/providers.tsx"],"sourcesContent":["\"use client\"\n\nimport { type ReactNode, useState } from \"react\"\nimport { QueryClient, QueryClientProvider } from \"@tanstack/react-query\"\n\nexport function Providers({ children }: { children: ReactNode }) {\n  const [queryClient] = useState(\n    () =>\n      new QueryClient({\n        defaultOptions: {\n          queries: {\n            retry: 1,\n            refetchOnWindowFocus: false,\n            staleTime: 15_000,\n          },\n        },\n      }),\n  )\n\n  return (\n    <QueryClientProvider client={queryClient}>\n      {children}\n    </QueryClientProvider>\n  )\n}\n"],"names":["Providers","children","queryClient","defaultOptions","queries","retry","refetchOnWindowFocus","staleTime","client"],"mappings":";;;;;AAEA;AACA;AAAA;AAHA;;;;AAKO,SAASA,UAAU,EAAEC,QAAQ,EAA2B;IAC7D,MAAM,CAACC,YAAY,GAAG,IAAA,gOAAQ,EAC5B,IACE,IAAI,4LAAW,CAAC;YACdC,gBAAgB;gBACdC,SAAS;oBACPC,OAAO;oBACPC,sBAAsB;oBACtBC,WAAW;gBACb;YACF;QACF;IAGJ,qBACE,6PAAC,6MAAmB;QAACC,QAAQN;kBAC1BD;;;;;;AAGP"}}]
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "paths": {
+      "@cos/rag": ["../rag/src"],
+      "@cos/rag-advanced/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*", "evaluation/**/*", "scripts/**/*", "tests/**/*"]
+}

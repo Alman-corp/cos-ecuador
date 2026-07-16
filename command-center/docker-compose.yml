@@ -1,0 +1,20 @@
+services:
+  supabase-db:
+    image: supabase/postgres:15.1.0.126
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+    ports:
+      - "3000:3000"
+    env_file: .env.local
+    depends_on:
+      supabase-db:
+        condition: service_healthy

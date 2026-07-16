@@ -30,6 +30,7 @@ const PAGE_NAMES: Record<string, string> = {
   "/consultor/tributario/ice": "ICE",
   "/consultor/tributario/anexos": "Anexos / ATS",
   "/consultor/tributario/cruces": "Cruces",
+  "/notifications": "Notificaciones",
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

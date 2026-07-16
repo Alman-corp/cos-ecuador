@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cos-identity
+  namespace: cos
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cos-identity
+  template:
+    metadata:
+      labels:
+        app: cos-identity
+    spec:
+      containers:
+        - name: identity
+          image: cos/identity:latest
+          ports:
+            - containerPort: 3001
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: cos-secrets
+                  key: database-url
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cos-identity
+  namespace: cos
+spec:
+  selector:
+    app: cos-identity
+  ports:
+    - port: 3001
+      targetPort: 3001
+  type: ClusterIP

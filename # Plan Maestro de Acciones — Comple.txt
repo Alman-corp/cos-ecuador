@@ -1,0 +1,796 @@
+# Plan Maestro de Acciones — Completar el COS al 100%
+
+> **120 acciones organizadas en 12 categorías**, cada una conceptualizada con su justificación, estado actual y esfuerzo estimado.
+> Clasificación de esfuerzo: 🟢 Bajo (1-3 días) · 🟡 Medio (1-2 semanas) · 🔴 Alto (3+ semanas)
+
+---
+
+## CATEGORÍA 1 · CAPA DE DATOS Y PERSISTENCIA
+
+Todo lo que el sistema almacena, cómo lo almacena y cómo garantiza la integridad.
+
+---
+
+### A01 · Completar el Prisma Schema con los dominios faltantes
+**¿Qué es?** El schema Prisma (`schema.prisma`, 63 KB, ~55 tablas) es el contrato de datos de toda la plataforma. Define qué información existe, cómo se relaciona y qué restricciones aplican. Actualmente cubre Identity, Clients, Projects y Audit, pero le faltan dominios completos como **Tributario** (declaraciones IVA, retenciones, anexos SRI, calendario fiscal), **Legal** (contratos con versionado, firmas, obligaciones), **Market Intelligence** (competidores, señales de mercado, precios), **Deliverables** (CIMs, reportes generados, plantillas), **Notifications** (canales, preferencias, historial de envío) y **Billing/Subscriptions** (planes, ciclos, consumo de créditos IA).
+**Estado actual:** El archivo [schema.prisma](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/packages/prisma-schema/prisma/schema.prisma) tiene 55 tablas; se necesitan ~40-50 más para cubrir los 15 módulos.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A02 · Ejecutar migraciones Prisma y estabilizar el schema
+**¿Qué es?** Una migración de base de datos es un script SQL versionado que transforma la estructura de la BD de un estado a otro de forma reproducible. Sin migraciones ejecutadas y versionadas, cualquier cambio al schema se pierde o genera conflictos. `prisma migrate dev` genera archivos SQL incrementales que permiten auditar cada cambio estructural.
+**Estado actual:** Existe la carpeta `migrations/` pero las migraciones no están ejecutadas contra una BD real en producción.
+**Esfuerzo:** 🟢 Bajo
+
+---
+
+### A03 · Crear seed data realista y por dominio
+**¿Qué es?** El *seed* es un script que pobla la base de datos con datos de demostración coherentes: una empresa consultora ficticia, 3-5 clientes con estados financieros históricos, contratos activos, usuarios con distintos roles, proyectos en diferentes fases, documentos subidos y sesiones de IA. Esto permite que cualquier desarrollador o demostrador arranque la app con un entorno completo.
+**Estado actual:** Existe [seed.ts](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/packages/prisma-schema/prisma/seed.ts) (21 KB) con datos parciales.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A04 · Implementar RLS completo (UPDATE/DELETE) en PostgreSQL
+**¿Qué es?** Row Level Security (RLS) es una funcionalidad de PostgreSQL que impide que un usuario acceda a filas que no le pertenecen. El COS es multi-tenant: cada fila contiene un `tenant_id` y las políticas RLS garantizan que un cliente jamás vea datos de otro. Actualmente solo existen políticas `SELECT` e `INSERT`; faltan las de `UPDATE` y `DELETE`, lo que constituye una vulnerabilidad crítica donde un tenant podría modificar o borrar datos de otro.
+**Estado actual:** Políticas parciales. Las auditorías lo marcan como **CRÍTICO** (hallazgo S1).
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A05 · Configurar Elasticsearch para indexación documental
+**¿Qué es?** Elasticsearch es un motor de búsqueda distribuido que permite buscar texto libre a velocidad de milisegundos dentro de miles de documentos (contratos, balances, reportes). Sin él, las búsquedas dependen de `LIKE` en PostgreSQL, lo cual es lento y no admite búsqueda por relevancia ni sinónimos. El `docker-compose.yml` ya lo incluye pero no hay código que cree índices ni que indexe documentos.
+**Estado actual:** Contenedor definido en [docker-compose.yml](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/docker-compose.yml) (línea 64). Sin mappings ni pipelines de indexación.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A06 · Desplegar Qdrant para almacenamiento vectorial (RAG)
+**¿Qué es?** Qdrant es una base de datos vectorial que almacena *embeddings* — representaciones numéricas del significado de textos. Cuando un usuario pregunta al agente IA "¿cuál es el riesgo de liquidez de este cliente?", el sistema busca en Qdrant los fragmentos de documentos más similares semánticamente a esa pregunta (no por palabras clave, sino por *significado*). Es la columna vertebral del RAG (Retrieval-Augmented Generation).
+**Estado actual:** Diseñado en blueprints. Sin contenedor en docker-compose ni código de integración.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A07 · Crear pipeline de backup automatizado
+**¿Qué es?** Un sistema automatizado que exporta una copia completa de PostgreSQL, Elasticsearch y MinIO en intervalos regulares (diario + semanal) y la almacena cifrada fuera del servidor principal. Sin esto, un fallo de disco destruye toda la información de todos los clientes.
+**Estado actual:** Existe un script básico [backup-db.ps1](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/scripts/backup-db.ps1) de 1.6 KB. No tiene cifrado, rotación ni almacenamiento externo.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+## CATEGORÍA 2 · MICROSERVICIOS BACKEND (NestJS)
+
+La lógica de negocio del servidor: CRUDs, validaciones, reglas de dominio y APIs REST.
+
+---
+
+### A08 · Completar el servicio `clients` (CRUD completo)
+**¿Qué es?** El servicio de Clientes gestiona todo el ciclo de vida comercial: crear empresas clientes, asociar contactos, representantes legales, accionistas, contratos e historial de reuniones. Actualmente solo existe el scaffold NestJS con `package.json` y `tsconfig`. Falta programar controllers, services y DTOs (Data Transfer Objects) con validación Zod para cada entidad del dominio CRM.
+**Estado actual:** [services/clients](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/services/clients) — solo scaffold.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A09 · Completar el servicio `documents`
+**¿Qué es?** El Motor Documental (M3) es la bóveda digital de la consultora. Este servicio administra: subida de archivos a MinIO (compatible S3), metadata en PostgreSQL, clasificación automática de tipo documental (balance, factura, contrato), extracción de texto (OCR/parser), versionado y permisos de acceso por cliente. Sin él, el Data Hub del frontend es decorativo.
+**Estado actual:** [services/documents](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/services/documents) — solo scaffold.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A10 · Completar el servicio `finance`
+**¿Qué es?** El Motor Financiero (M9) es lo que diferencia esta plataforma de un ERP genérico. Este servicio debe exponer APIs para: importar estados financieros, calcular ratios (liquidez, solvencia, rentabilidad, eficiencia), ejecutar proyecciones a 12 meses, simular escenarios de estrés y generar alertas cuando un KPI cruza un umbral configurable. Conecta los datos crudos con las fórmulas de análisis.
+**Estado actual:** [services/finance](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/services/finance) — solo scaffold con Dockerfile y package.json.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A11 · Completar el servicio `workflows`
+**¿Qué es?** El Workflow Engine (M5) es la automatización del proceso de consultoría. Define secuencias condicionales: "cuando un cliente sube un balance → extraer datos → calcular ratios → clasificar riesgo → generar informe preliminar → notificar consultor → agendar reunión". Sin este servicio, cada paso es manual. Debe implementar un modelo de BPM (Business Process Management) con estados, transiciones, condiciones y acciones configurables.
+**Estado actual:** [services/workflows](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/services/workflows) — solo scaffold.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A12 · Completar el servicio `bi` (Business Intelligence)
+**¿Qué es?** El servicio de BI agrega datos transaccionales para generar métricas de alto nivel: MRR de la consultora, utilización de consultores, rentabilidad por proyecto, pipeline de ventas, y KPIs sectoriales. Debe exponer endpoints que alimenten dashboards con datos pre-calculados (materialized views) y series temporales.
+**Estado actual:** [services/bi](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/services/bi) — directorio vacío.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A13 · Crear el servicio `tax` (Motor Tributario)
+**¿Qué es?** El Motor Tributario (M10) es específico para Ecuador. Debe calcular: IVA mensual, retenciones en la fuente, Impuesto a la Renta anual, cruces de información entre compras y ventas (Anexo Transaccional Simplificado — ATS), alertas por inconsistencias con el SRI, y un calendario fiscal con fechas límite por noveno dígito del RUC. Es el módulo más regulado de la plataforma.
+**Estado actual:** No existe como servicio independiente. La UI tiene una página placeholder en [consultor/tributario/page.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/consultor/tributario/page.tsx).
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A14 · Crear el servicio `legal` (Motor Legal)
+**¿Qué es?** El Motor Legal (M11) gestiona contratos entre la consultora y sus clientes: redacción asistida por IA, versionado (cada edición genera una nueva versión inmutable), firma electrónica digital (integración con FirmaEC o DocuSign), seguimiento de obligaciones contractuales (cláusulas con fecha de cumplimiento) y alertas de vencimiento.
+**Estado actual:** La UI tiene una página placeholder en [consultor/legal/page.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/consultor/legal/page.tsx). Sin servicio backend.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A15 · Crear el servicio `notifications`
+**¿Qué es?** Un servicio centralizado que recibe *eventos* del sistema (documento subido, KPI en rojo, contrato por vencer, nueva factura) y los distribuye a los canales configurados por el usuario: email (vía Resend, ya integrado), notificaciones push en la app, Slack, WhatsApp Business API y SMS. Debe mantener un historial de notificaciones enviadas y respetar preferencias de frecuencia.
+**Estado actual:** Existe la librería de email [lib/email/service.ts](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/email/service.ts) con Resend. Falta el servicio backend que orqueste múltiples canales.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A16 · Implementar Event Bus con RabbitMQ
+**¿Qué es?** Un Event Bus es un canal de comunicación asíncrona entre microservicios. Cuando el servicio `documents` recibe un nuevo archivo, publica un evento `document.uploaded`. El servicio `workflows` lo escucha y arranca el flujo de procesamiento. El servicio `ai-orchestrator` lo escucha y prepara el chunking. Sin esto, los microservicios están aislados y no pueden colaborar. RabbitMQ ya está en docker-compose.
+**Estado actual:** RabbitMQ en [docker-compose.yml](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/docker-compose.yml) (línea 48). Sin productores ni consumidores de mensajes implementados.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+## CATEGORÍA 3 · MOTORES DE CÁLCULO (Python / FastAPI)
+
+Los cerebros cuantitativos: modelos financieros, econométricos y de simulación.
+
+---
+
+### A17 · Motor DCF real (Discounted Cash Flow)
+**¿Qué es?** El DCF es el método estándar para valorar una empresa. Proyecta los flujos de caja libres futuros (5-10 años) y los descuenta al presente usando el WACC (Weighted Average Cost of Capital). Calcula: FCFF (Free Cash Flow to Firm), Valor Terminal (modelo de Gordon Growth o Exit Multiple), Enterprise Value y Equity Value. Es el corazón de la consultoría de M&A.
+**Estado actual:** El frontend [valuation/page.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/consultor/dashboard/valuation/page.tsx) consume datos de una API que devuelve `dcfResult` — pero la API calcula valores estáticos. Se necesita un motor en Python con QuantLib/NumPy que reciba estados financieros reales como input.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A18 · Motor Monte Carlo real
+**¿Qué es?** La simulación de Monte Carlo ejecuta miles de escenarios (10,000-100,000) variando aleatoriamente parámetros clave (crecimiento de ventas, margen operativo, tasa de interés, WACC) según distribuciones estadísticas (Normal, Triangular, Lognormal). El resultado es una distribución de probabilidad del valor de la empresa, no un solo número. Permite decir "hay 85% de probabilidad de que el Equity Value esté entre $1.8M y $3.2M".
+**Estado actual:** El archivo [tools/financial_tools.py](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/services/ai-orchestrator/tools/financial_tools.py) (10 KB) contiene `run_montecarlo_cashflow` con una implementación funcional de Monte Carlo para cash flow. Necesita extenderse para valuación DCF completa y generación de heatmaps de sensibilidad.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A19 · Motor MIDAS de nowcasting macroeconómico
+**¿Qué es?** MIDAS (Mixed Data Sampling) es un modelo econométrico que combina datos de frecuencias diferentes para predecir en tiempo real. Ejemplo: usa indicadores diarios (tasa de interés, precio del petróleo, tipo de cambio) para predecir el PIB trimestral *antes de que se publique oficialmente*. Para una consultora en Ecuador, permite responder "¿cómo va a cerrar el PIB este trimestre?" usando datos que ya están disponibles hoy.
+**Estado actual:** Diseñado en [BLUEPRINT_PLAN_CREACION.md](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/BLUEPRINT_PLAN_CREACION.md) §3.2.2.2. Sin implementación.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A20 · Motor Bayesian VAR con Conditional Forecasting
+**¿Qué es?** Un VAR Bayesiano es un modelo que captura las relaciones dinámicas entre múltiples variables macroeconómicas simultáneamente (PIB, inflación, tasa de interés, crédito). Lo "condicional" permite fijar la trayectoria de una variable (ej. "la Fed sube tasas 50bps") y proyectar el impacto en el resto. Usa PyMC para inferencia y genera distribuciones predictivas completas, no pronósticos puntuales.
+**Estado actual:** Solo documentación en blueprints. Sin código.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A21 · Motor de Gobierno Corporativo (Gov Audit)
+**¿Qué es?** Un módulo que evalúa la calidad de gobierno corporativo de una empresa cliente contra frameworks estándar: CAF (Corporación Andina de Fomento), OECD Principles y normativa BVQ (Bolsa de Valores de Quito). Genera un checklist dinámico, calcula un score de madurez, identifica brechas (gaps) y propone un plan de mejora con prioridades. Produce un reporte PDF automático.
+**Estado actual:** Solo documentación en blueprint §3.1.2.4. Sin código.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A22 · Motor de Optimización de Capital
+**¿Qué es?** Simula múltiples estructuras de deuda/equity para encontrar la que minimiza el WACC. Incluye: modelo de Lintner para política de dividendos óptima, análisis de capacidad de endeudamiento (DSCR, cobertura de intereses, covenants) y proyección del impacto de cada escenario en EPS y ROE. Permite responder "¿debería la empresa endeudarse más o emitir capital?".
+**Estado actual:** Solo documentación en blueprint §3.1.2.5. Sin código.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A23 · Pipeline ETL de datos macroeconómicos
+**¿Qué es?** Un proceso automatizado (ETL: Extract-Transform-Load) que recolecta indicadores económicos de múltiples fuentes — BCE (Banco Central del Ecuador), SRI (recaudación), INEC (inflación, empleo), FRED (tasas USA) y Yahoo Finance (mercados) — los normaliza, limpia y almacena en TimescaleDB para alimentar los modelos econométricos. Debe ejecutarse en schedules configurables (diario/semanal/mensual).
+**Estado actual:** Solo documentación. Sin código ni Airflow/Prefect configurado.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+## CATEGORÍA 4 · INTELIGENCIA ARTIFICIAL Y AGENTES
+
+El ecosistema de IA multiagente que transforma la plataforma en un consultor digital.
+
+---
+
+### A24 · Conectar el orquestador LangGraph al frontend
+**¿Qué es?** Actualmente el [orchestrator.py](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/services/ai-orchestrator/agents/orchestrator.py) tiene un grafo LangGraph funcional con Router → Financial Agent → Tax Agent → Aggregator. Pero el chat del frontend ([agents/page.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/consultor/dashboard/agents/page.tsx)) tiene un fallback offline que devuelve respuestas hardcodeadas. Se necesita conectar ambos vía la API `/api/chat` al servicio FastAPI del orchestrator.
+**Estado actual:** El frontend llama a `/api/chat` y maneja errores con fallbacks estáticos. El backend existe en [main.py](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/services/ai-orchestrator/main.py). Falta proxy o integración en producción.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A25 · Implementar RAG con trazabilidad ISD
+**¿Qué es?** RAG (Retrieval-Augmented Generation) es la técnica que permite a los agentes IA responder preguntas basándose en los documentos reales del cliente, no en su entrenamiento general. ISD (Iterative Source Decomposition) añade trazabilidad: cada afirmación del agente se vincula a un fragmento específico del documento original (archivo, página, párrafo). Permite al consultor verificar "¿de dónde sacó la IA esta conclusión?".
+**Estado actual:** Diseñado en blueprint §3.4.2.1. Sin chunking pipeline, sin embeddings, sin integración Qdrant.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A26 · Crear agentes especialistas faltantes
+**¿Qué es?** Actualmente existen `financial_agent.py` y `tax_agent.py`. Faltan los agentes para: **Comercial** (análisis de pipeline, scoring de leads, recomendaciones de pricing), **Legal** (revisión de contratos, detección de cláusulas de riesgo), **RRHH** (análisis de nómina, rotación, productividad), **Riesgos** (evaluación integral, matrices de probabilidad × impacto) y **Planeación Estratégica** (roadmaps, OKRs, análisis competitivo).
+**Estado actual:** Solo 2 de ~10 agentes planificados existen en [agents/](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/services/ai-orchestrator/agents).
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A27 · Implementar memoria persistente por cliente
+**¿Qué es?** Los agentes deben recordar conversaciones pasadas y decisiones tomadas *por cada cliente*. La memoria tiene capas: (1) por conversación (contexto inmediato), (2) por proyecto (historial completo de un engagement), (3) por cliente (todas las interacciones acumuladas), (4) por empresa (patrones transversales). Usa una combinación de PostgreSQL (conversaciones) y Qdrant (búsqueda semántica sobre historial).
+**Estado actual:** Existe la carpeta `memory/` en el orchestrator pero sin implementación funcional.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A28 · Construir el Knowledge Graph
+**¿Qué es?** Un grafo de conocimiento que conecta *Problema → Norma → Estrategia → Resultado*. Cada caso de consultoría resuelto alimenta el grafo. Cuando un nuevo cliente tiene un problema similar, la IA recomienda estrategias que ya funcionaron antes, adaptadas a su contexto. Es el activo intelectual más valioso de la consultora: mejora con cada caso.
+**Estado actual:** Diseñado en [CORE_DOMAIN.md](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/CORE_DOMAIN.md) §6. Sin implementación (se planea Neo4j en Fase 3).
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A29 · Motor de costos de IA (AI Cost Engine)
+**¿Qué es?** Cada consulta a GPT-4/Claude/Gemini tiene un costo en tokens. Este motor registra: modelo usado, tokens consumidos (input + output), costo en dólares, tiempo de respuesta y calidad (feedback humano). Permite: (a) facturar al cliente por uso de IA, (b) optimizar eligiendo modelos más baratos para tareas simples, (c) alertar si el gasto mensual excede un presupuesto.
+**Estado actual:** Diseñado en CORE_DOMAIN.md. Sin implementación.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A30 · Social Listening Engine
+**¿Qué es?** Un motor que monitorea redes sociales (X/Twitter, Reddit, News) usando sus APIs, aplica análisis de sentimiento con FinBERT (modelo fine-tuned para lenguaje financiero) y BERTopic (clustering de temas), y genera dashboards con: tendencias de sentimiento, share of voice, detección de anomalías (spikes de mención negativa). Permite al consultor decir al cliente "la percepción pública de tu marca cayó 15% esta semana por X razón".
+**Estado actual:** Solo documentación en blueprint §3.3.2.1. Sin código.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+## CATEGORÍA 5 · FRONTEND — PORTAL DEL CONSULTOR
+
+Las páginas y componentes que usa el consultor para operar diariamente.
+
+---
+
+### A31 · Conectar el Dashboard a datos reales vía TanStack Query
+**¿Qué es?** El dashboard del consultor ([dashboard/page.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/consultor/dashboard/page.tsx), 7 KB) actualmente muestra KPIs, tabla P&L y métricas con datos codificados directamente en el JSX. TanStack Query (`@tanstack/react-query`, ya instalado) permite: hacer fetch a las APIs de backend, cachear respuestas, manejar estados de carga/error/vacío, revalidar automáticamente y sincronizar entre pestañas. Cada dato hardcodeado debe reemplazarse por un `useQuery` que consuma un endpoint real.
+**Estado actual:** TanStack Query ya está en `package.json`. Existe [lib/queries.ts](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/queries.ts) con algunos hooks. La página de Valuación ya lo usa (`useValuation`). Faltan las demás.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A32 · Implementar el Stress Simulator con backend real
+**¿Qué es?** La Sala de Guerra es *la herramienta de venta* de la consultora — se la demuestra al CEO moviendo sliders y viendo cómo "la caja se va a cero en octubre". El hook [useStressSimulation.ts](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/hooks/useStressSimulation.ts) calcula las proyecciones directamente en el navegador. Para que sea fiable, el cálculo debe ocurrir en el backend (servicio `finance`) usando los datos financieros reales del cliente almacenados en la BD, no fórmulas simplificadas en JavaScript.
+**Estado actual:** Cálculos en el frontend, datos simulados. Hook funcional pero con lógica financiera rudimentaria.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A33 · Implementar Data Hub con validación server-side
+**¿Qué es?** El Data Hub permite al cliente subir archivos CSV/Excel con sus datos financieros. Actualmente la validación es solo en el navegador (verifica extensión del archivo y columnas). Se necesita: validación server-side del tipo MIME real (no solo la extensión), escaneo de contenido malicioso, parsing del Excel con la librería `xlsx` (ya instalada), validación de integridad de datos (fechas coherentes, montos numéricos, columnas requeridas) y persistencia en MinIO + metadata en PostgreSQL.
+**Estado actual:** UI funcional con drag & drop, mapeo de columnas y preview. Sin validación server-side.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A34 · Construir el módulo de Gestión de Proyectos (Kanban/Gantt)
+**¿Qué es?** Cada consultoría es un proyecto con tareas, dependencias, hitos y riesgos. Se necesita una vista Kanban (arrastrar tareas entre columnas: pendiente → en progreso → revisión → completado) y una vista Gantt (línea de tiempo con barras horizontales mostrando duración y dependencias). El schema Prisma ya tiene los modelos `Project`, `Task`, `Milestone` y `Risk`.
+**Estado actual:** [consultor/proyectos/page.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/consultor/proyectos/page.tsx) (3.5 KB) — placeholder con tabla básica.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A35 · Construir el módulo Tributario frontend
+**¿Qué es?** La interfaz visual del Motor Tributario: formularios para cargar declaraciones de IVA y Renta, panel de cruces SRI (compras vs. ventas), calendario fiscal interactivo con countdown por noveno dígito del RUC, tabla de retenciones con detalle de porcentajes y bases imponibles, y alertas de inconsistencias detectadas automáticamente.
+**Estado actual:** [consultor/tributario/page.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/consultor/tributario/page.tsx) (5.4 KB) — placeholder con datos estáticos.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A36 · Construir el módulo Legal frontend
+**¿Qué es?** Interfaz para: listar contratos activos/vencidos/por vencer, visualizar versiones de un contrato con diff (qué cambió entre v1 y v2), iniciar flujo de firma digital, registrar obligaciones contractuales con fechas de cumplimiento y generar alertas automáticas de vencimiento.
+**Estado actual:** [consultor/legal/page.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/consultor/legal/page.tsx) (4.6 KB) — placeholder con tabla estática.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A37 · Implementar el Waterfall Chart de caja
+**¿Qué es?** Un gráfico de cascada (waterfall) que muestra visualmente: saldo inicial → (+) ingresos → (-) gastos operativos → (-) impuestos → (-) nómina → (=) saldo final proyectado. Es una de las visualizaciones más poderosas para un CEO: ve *exactamente* dónde se va el dinero cada mes. Debe renderizarse con Recharts (ya instalado) o D3.js.
+**Estado actual:** Blueprint lo menciona (§3.5.1.1). Sin implementación de componente de visualización.
+**Esfuerzo:** 🟢 Bajo
+
+---
+
+### A38 · Crear componente de gráficos financieros reutilizable
+**¿Qué es?** Una biblioteca de componentes de visualización especializados en finanzas: gráfico de líneas con media móvil (para tendencias de márgenes), barras apiladas (para composición de ingresos/gastos), radar chart (para benchmark sectorial de ratios), donut chart (para composición de portafolio) y tornado chart (para análisis de sensibilidad Monte Carlo). Recharts ya está instalado.
+**Estado actual:** Solo existe [KPICard.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/components/shared/KPICard.tsx) como componente compartido. Sin biblioteca de charts.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A39 · Upload de documentos para agentes IA
+**¿Qué es?** Permitir que el usuario arrastre un PDF/Excel directamente al chat con un agente IA. El sistema lo procesa en tiempo real: extrae texto, lo chunka, genera embeddings, ejecuta RAG y responde preguntas sobre ese documento específico con trazabilidad ISD. Es la interacción más poderosa de la plataforma.
+**Estado actual:** Blueprint §3.5.1.5. La UI de agentes no tiene zona de upload de documentos.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+## CATEGORÍA 6 · FRONTEND — PORTAL DEL CLIENTE
+
+Las vistas que el cliente externo de la consultora utiliza para ver su información.
+
+---
+
+### A40 · Completar Dashboard del Cliente con datos reales
+**¿Qué es?** El Portal del Cliente ([cliente/page.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/cliente/page.tsx), 3.2 KB) muestra indicadores, próximos eventos y documentos compartidos. Debe conectarse a las APIs de backend para mostrar: KPIs financieros reales de su empresa, estatus de proyectos activos, próximas reuniones agendadas, documentos compartidos por la consultora, facturas pendientes y notificaciones.
+**Estado actual:** Layout implementado con datos placeholder.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A41 · Módulo de Reportes para el Cliente
+**¿Qué es?** Sección donde el cliente puede descargar reportes generados por la consultora: diagnósticos financieros en PDF, informes de auditoría de gobierno corporativo, análisis de márgenes comparativos y planes estratégicos. Los PDFs se generan server-side con `@react-pdf/renderer` (ya instalado).
+**Estado actual:** La librería existe en [lib/pdf/](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/pdf) con `report.tsx` y `due-diligence-report.tsx`. Falta la vista del cliente para listar y descargar.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A42 · Módulo de Mensajería del Cliente
+**¿Qué es?** Canal de comunicación bidireccional entre cliente y consultora, integrado en la plataforma. Historial de conversaciones organizadas por tema, notificaciones por email cuando hay mensaje nuevo, y posibilidad de adjuntar archivos. Evita depender de WhatsApp/email externos para comunicación formal.
+**Estado actual:** [cliente/mensajes](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/cliente/mensajes) — directorio existe, implementación por verificar.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A43 · Módulo de Reuniones del Cliente
+**¿Qué es?** Vista donde el cliente ve sus reuniones agendadas (pasadas y futuras) con la consultora, incluyendo: participantes, agenda, actas de reunión generadas por IA, compromisos (action items) y próximos pasos. Integración con calendarios (Google Calendar / Outlook).
+**Estado actual:** [cliente/reuniones](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/cliente/reuniones) — directorio existe.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+## CATEGORÍA 7 · FRONTEND — PORTAL DEL DIRECTOR
+
+Las vistas que usa el CEO/Director de la firma de consultoría.
+
+---
+
+### A44 · Completar Dashboard del Director con datos reales
+**¿Qué es?** El Portal Director ([director/page.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/director/page.tsx), 6.3 KB) es el panel de control de la consultora como negocio: MRR, ARR, pipeline de ventas, utilización de consultores, rentabilidad por proyecto, alertas críticas. Debe consumir datos del servicio `bi` y mostrar tendencias con gráficos de series temporales.
+**Estado actual:** Layout y estructura implementados con datos estáticos.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A45 · Módulo de Finanzas de la Consultora
+**¿Qué es?** Vista donde el director ve las finanzas internas de su firma: ingresos por cliente, costos operativos, margen por proyecto, cash burn rate, runway financiero de la propia consultora. Aplica las mismas herramientas de análisis (la consultora se analiza a sí misma).
+**Estado actual:** [director/finanzas/page.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/director/finanzas/page.tsx) (3.2 KB) — placeholder.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A46 · Módulo de Equipo y Productividad
+**¿Qué es?** Panel para gestionar consultores: horas facturables vs. no facturables (utilización), carga de trabajo actual, skills y certificaciones, desempeño por período, y asignación a proyectos. Permite al director optimizar la asignación de recursos y detectar consultores sobrecargados o subutilizados.
+**Estado actual:** [director/equipo](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/director/equipo) — directorio existe.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A47 · Módulo de Riesgos Transversales
+**¿Qué es?** Vista consolidada de todos los riesgos detectados por los motores de IA y reglas de negocio: riesgo financiero de cada cliente, riesgos de proyectos, riesgos tributarios, riesgos contractuales. Matriz de probabilidad × impacto con heatmap visual. Permite al director priorizar intervenciones.
+**Estado actual:** [director/riesgos/page.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/director/riesgos/page.tsx) (4.6 KB) — implementación parcial.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A48 · Módulo de Pipeline de Ventas (CRM Visual)
+**¿Qué es?** Vista Kanban del pipeline de ventas de la consultora: columnas con etapas (Lead → Contactado → Calificado → Propuesta → Negociación → Cerrado). Cada card muestra: nombre de la empresa, valor estimado, probabilidad de cierre y días en la etapa. El director puede arrastrar leads entre etapas. Integrado con el CRM Context del dominio.
+**Estado actual:** No existe como vista independiente.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+## CATEGORÍA 8 · AUTENTICACIÓN, AUTORIZACIÓN Y SEGURIDAD
+
+Control de acceso, identidad y protección de datos.
+
+---
+
+### A49 · Integración completa con Keycloak SSO
+**¿Qué es?** Keycloak es un servidor de identidad que permite Single Sign-On (SSO) empresarial: el usuario se autentica una vez y accede a todos los servicios. Soporta: LDAP/Active Directory (para grandes corporaciones), OAuth2/OIDC (para integraciones), gestión de sesiones, 2FA (autenticación de dos factores) y auto-servicio de contraseñas. Actualmente la app usa Supabase Auth (Magic Link), que es suficiente para Fase 1 pero no escala a enterprise.
+**Estado actual:** Keycloak en docker-compose. Sin integración real con la app. La app usa Supabase Auth + JWT customizado ([middleware.ts](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/middleware.ts)).
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A50 · Implementar sistema de permisos granulares (RBAC + ABAC)
+**¿Qué es?** RBAC (Role-Based Access Control) asigna permisos por rol: el Director ve todo, el Consultor ve sus clientes, el Cliente ve solo su portal. ABAC (Attribute-Based Access Control) refina con atributos: "un Consultor puede ver los datos financieros de un cliente solo si está asignado a un proyecto activo con ese cliente". Actualmente el store tiene solo 3 roles (`consultor`, `director`, `cliente`). Falta una matriz de permisos granulares por recurso y acción.
+**Estado actual:** [store.ts](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/store.ts) tiene roles básicos. Existe [AUTHORIZATION_MATRIX.md](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/AUTHORIZATION_MATRIX.md) (22 KB) con diseño completo. Sin implementación.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A51 · Protección CSRF en callbacks de auth
+**¿Qué es?** CSRF (Cross-Site Request Forgery) es un ataque donde un sitio malicioso ejecuta acciones en nombre del usuario autenticado. Los callbacks de autenticación (rutas que procesan el retorno de Supabase/Keycloak después del login) son especialmente vulnerables. Se necesita implementar tokens anti-CSRF (double-submit cookie pattern) en todas las rutas de auth.
+**Estado actual:** Hallazgo S5 de la auditoría. Sin mitigación.
+**Esfuerzo:** 🟢 Bajo
+
+---
+
+### A52 · Implementar Audit Log completo
+**¿Qué es?** Un registro inmutable de todas las acciones sensibles del sistema: quién accedió a qué dato, quién modificó qué campo, quién descargó qué documento, con timestamp y dirección IP. Es requisito legal para cumplimiento SOX (clientes públicos) y LOEP (Ecuador). La tabla `AuditLog` existe en Prisma pero no hay código que la alimente.
+**Estado actual:** Modelo existe en Prisma. Sin middleware que intercepte acciones y las registre.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A53 · Sanitización de inputs y protección XSS
+**¿Qué es?** XSS (Cross-Site Scripting) es un ataque donde un usuario inyecta código JavaScript malicioso en campos de texto que luego se renderiza a otros usuarios. La librería `xss` ya está instalada y existe [lib/xss.ts](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/xss.ts). Pero debe aplicarse sistemáticamente en todos los inputs de usuario: chat, Data Hub, formularios de clientes, campos de texto libre.
+**Estado actual:** Librería instalada, utilidad creada. Sin aplicación sistemática.
+**Esfuerzo:** 🟢 Bajo
+
+---
+
+### A54 · Validación exhaustiva con Zod en todas las APIs
+**¿Qué es?** Zod es una librería de validación de esquemas para TypeScript. Cada endpoint API debe validar que el payload recibido cumple con el esquema esperado antes de procesarlo. Existe [api-schemas.ts](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/api-schemas.ts) (21 KB) con esquemas definidos. Pero muchas rutas API no los aplican.
+**Estado actual:** Esquemas Zod definidos. Aplicación parcial.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+## CATEGORÍA 9 · GENERACIÓN DE DOCUMENTOS Y REPORTES
+
+La producción automática de entregables profesionales.
+
+---
+
+### A55 · Generador de CIMs (Confidential Information Memorandums)
+**¿Qué es?** Un CIM es el documento estrella en una operación de M&A: un informe de 50-80 páginas que presenta la empresa target a compradores potenciales. Incluye: resumen ejecutivo, historia, productos, mercado, equipo, financieros históricos, proyecciones, riesgos y tesis de inversión. El sistema debe generarlo automáticamente a partir de los datos almacenados, usando plantillas LaTeX o `@react-pdf/renderer`.
+**Estado actual:** `@react-pdf/renderer` instalado. Existe [report.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/pdf/report.tsx) (13 KB) con un template de reporte básico. Falta la estructura completa del CIM.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A56 · Generador de reportes de auditoría PDF
+**¿Qué es?** Producción automatizada de informes de auditoría de gobierno corporativo, con: portada institucional, tabla de hallazgos con scoring por categoría (rojo/amarillo/verde), gráficos radar de madurez, comparación contra benchmark sectorial y plan de acción priorizado. Debe ser descargable como PDF y compartible con el cliente.
+**Estado actual:** Template parcial en [due-diligence-report.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/pdf/due-diligence-report.tsx) (22 KB). Necesita más plantillas.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A57 · Exportación a Excel de datos financieros
+**¿Qué es?** Los CFOs viven en Excel. La plataforma debe permitir exportar cualquier tabla o resultado de análisis como archivo `.xlsx` con formato profesional: colores corporativos, fórmulas funcionales (no solo valores), múltiples hojas (P&L, Balance, Ratios, Proyecciones) y gráficos embebidos. La librería `xlsx` ya está instalada.
+**Estado actual:** `xlsx` en package.json. Existe [lib/excel/](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/excel). Necesita templates financieros completos.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+## CATEGORÍA 10 · CALIDAD, TESTING Y OBSERVABILIDAD
+
+Todo lo que garantiza que el sistema funciona correctamente y se puede diagnosticar.
+
+---
+
+### A58 · Configurar suite de tests unitarios (Vitest)
+**¿Qué es?** Tests que verifican que cada función o componente individual funciona correctamente de forma aislada. Vitest ya está instalado y [vitest.config.ts](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/vitest.config.ts) existe. Pero la cobertura actual es 0%. Se necesitan tests para: lógica financiera (`sanity-checks.ts`, `data-quality.ts`), schemas Zod, componentes React críticos (KPICard, simulador), y hooks (`useStressSimulation`).
+**Estado actual:** Vitest configurado. Existen 5 archivos `*.test.ts` con tests básicos ([api-schemas.test.ts](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/api-schemas.test.ts), [token.test.ts](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/auth/token.test.ts), etc.). Objetivo: >80% cobertura.
+**Esfuerzo:** 🔴 Alto (es continuo)
+
+---
+
+### A59 · Configurar tests de integración con MSW
+**¿Qué es?** MSW (Mock Service Worker) intercepta peticiones HTTP durante los tests y devuelve respuestas controladas. Permite probar que el frontend se comporta correctamente cuando la API devuelve datos, errores o respuestas lentas, sin necesidad de un backend real corriendo. La carpeta [tests/integration](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/tests/integration) existe pero está vacía.
+**Estado actual:** Estructura creada. Sin handlers MSW ni tests de integración.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A60 · Tests de carga (Load Testing)
+**¿Qué es?** Simulan cientos de usuarios simultáneos para verificar que el sistema no se degrada bajo presión. Miden: tiempo de respuesta P95, throughput (peticiones/segundo) y punto de quiebre. La carpeta [tests/load](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/tests/load) existe. Se recomienda k6 o Artillery.
+**Estado actual:** Directorio existe. Sin scripts de carga.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A61 · Integración completa de Sentry
+**¿Qué es?** Sentry captura errores en producción en tiempo real: el stack trace completo, el navegador del usuario, la ruta donde ocurrió, las acciones previas (breadcrumbs) y el estado de la app. Los archivos de configuración existen (`sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`) pero se necesita verificar que capturan correctamente errores en los 3 runtimes (browser, server y edge).
+**Estado actual:** `@sentry/nextjs` instalado. Configs básicas creadas. Sin verificación de captura real.
+**Esfuerzo:** 🟢 Bajo
+
+---
+
+### A62 · Dashboards de monitoreo (Grafana + Prometheus)
+**¿Qué es?** Grafana es la interfaz visual y Prometheus es el motor de métricas. Juntos permiten ver en tiempo real: uso de CPU/RAM de cada microservicio, latencia P99 de cada endpoint, tasa de errores, conexiones activas a PostgreSQL, tamaño de colas en RabbitMQ, y métricas personalizadas de negocio (consultas IA por hora, documentos procesados). Alertas configurables via Slack/email.
+**Estado actual:** Diseñado en blueprint. Sin implementación.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A63 · Health checks en todos los servicios
+**¿Qué es?** Un endpoint `/health` en cada microservicio que verifica que está vivo y puede alcanzar sus dependencias (PostgreSQL, Redis, RabbitMQ, Elasticsearch). Kubernetes usa estos endpoints para reiniciar automáticamente servicios caídos (liveness probe) y dejar de enviar tráfico a servicios que aún no están listos (readiness probe).
+**Estado actual:** Existe [api/health](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/api/health) en el frontend. Faltan en los microservicios NestJS.
+**Esfuerzo:** 🟢 Bajo
+
+---
+
+### A64 · Logging estructurado con Pino
+**¿Qué es?** Logs con formato JSON consistente que incluyen: timestamp, nivel (info/warn/error), servicio de origen, request ID (para trazar una petición a través de múltiples microservicios), tenant ID y mensaje. Pino ya está instalado y [logger.ts](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/logger.ts) existe. Debe aplicarse consistentemente en todos los servicios.
+**Estado actual:** Logger configurado. Aplicación parcial.
+**Esfuerzo:** 🟢 Bajo
+
+---
+
+## CATEGORÍA 11 · DEVOPS, CI/CD E INFRAESTRUCTURA
+
+Todo lo que permite desplegar, escalar y operar el sistema en producción.
+
+---
+
+### A65 · Completar CI pipeline con stages faltantes
+**¿Qué es?** El pipeline de Integración Continua [ci.yml](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/.github/workflows/ci.yml) (3.7 KB) ejecuta automáticamente en cada PR: lint, type-check, build y tests. Faltan stages para: análisis de seguridad (npm audit, Snyk), análisis de cobertura de código, build de imágenes Docker y publicación a un registry.
+**Estado actual:** CI básico funcional con 1 workflow.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A66 · Crear pipeline de CD (Continuous Deployment)
+**¿Qué es?** Un pipeline que, después de que CI pasa y el PR se aprueba, despliega automáticamente a staging. Para producción, requiere aprobación manual. Opciones: Vercel (para el frontend Next.js, deploy en 1 clic) o ArgoCD (GitOps para Kubernetes, más robusto). Actualmente no hay deploy automatizado.
+**Estado actual:** Sin pipeline de deployment.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A67 · Dockerfiles optimizados para todos los servicios
+**¿Qué es?** Cada microservicio necesita un Dockerfile multi-stage que: (1) instala dependencias, (2) compila TypeScript, (3) crea una imagen mínima de producción sin devDependencies. Los Dockerfiles existentes para `identity` y `clients` son básicos (~300 bytes). Necesitan optimización: caching de layers, distroless images, health checks.
+**Estado actual:** Dockerfiles básicos en `identity`, `clients`, `documents`, `finance`, `workflows`. Sin optimización.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A68 · Manifiestos Kubernetes completos
+**¿Qué es?** Archivos YAML que definen cómo Kubernetes ejecuta cada servicio: Deployments (cuántas réplicas, qué imagen), Services (cómo se expone internamente), Ingress (cómo llega tráfico externo), ConfigMaps (configuración), Secrets (credenciales), HPA (auto-scaling horizontal) y PDBs (presupuesto de disrupciones). La carpeta [infra/k8s](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/infra/k8s) existe pero está incompleta.
+**Estado actual:** Manifiestos básicos para web e identity.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A69 · Implementar Terraform/Pulumi para IaC
+**¿Qué es?** Infrastructure as Code: definir toda la infraestructura cloud (servidores, bases de datos, redes, balanceadores, DNS) en archivos de código versionados. Permite recrear todo el entorno desde cero con un solo comando, y auditar cada cambio a la infraestructura como un commit de Git.
+**Estado actual:** [infra/terraform](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/infra/terraform) — directorio vacío.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A70 · Configurar ambientes (dev/staging/prod)
+**¿Qué es?** Tres entornos aislados: **dev** (para desarrollo local, datos de prueba), **staging** (réplica de producción para QA y demos) y **prod** (clientes reales, máxima seguridad). Cada uno con su propia base de datos, secrets y configuración. El `.env.local` actual mezcla todo. Se necesitan `.env.development`, `.env.staging` y `.env.production` con variables específicas.
+**Estado actual:** Solo existe `.env.local` y `.env.example`. Sin separación de ambientes.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+## CATEGORÍA 12 · UX, ACCESIBILIDAD, I18N Y COMERCIALIZACIÓN
+
+La capa de pulido que convierte un software funcional en un producto comercializable.
+
+---
+
+### A71 · Migrar a Shadcn/ui como sistema de componentes
+**¿Qué es?** Shadcn/ui es una colección de componentes React accesibles y estilizados (modales, selects, tablas, tooltips, popovers, calendarios, combobox). Actualmente la app usa componentes HTML nativos estilizados con Tailwind. Migrar a Shadcn/ui garantiza consistencia visual, accesibilidad WCAG 2.1 y velocidad de desarrollo (no reinventar cada input).
+**Estado actual:** No instalado. El blueprint lo menciona como parte del stack.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A72 · Accesibilidad WCAG 2.1 completa
+**¿Qué es?** Web Content Accessibility Guidelines — estándares internacionales para que personas con discapacidades puedan usar la app. Incluye: `aria-label` en todos los controles interactivos, navegación por teclado completa, `aria-live` en zonas de chat (para lectores de pantalla), contraste mínimo 4.5:1, `prefers-reduced-motion` para respetar preferencias del SO, y skip-to-content links.
+**Estado actual:** 10 hallazgos de accesibilidad documentados (A1-A10 en auditoría). Ninguno corregido.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A73 · Internacionalización completa (i18n)
+**¿Qué es?** Soporte para múltiples idiomas en la interfaz. Los archivos [en.ts](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/i18n/en.ts) y [es.ts](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/i18n/es.ts) existen con ~80 strings cada uno. Pero la mayoría de textos en la app están hardcodeados en español directamente en JSX. Cada texto visible debe pasar por el sistema i18n para permitir inglés (clientes internacionales) y potencialmente portugués (Brasil).
+**Estado actual:** Sistema i18n creado. Sin aplicación sistemática.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A74 · Tema claro / Respeto a preferencias del sistema
+**¿Qué es?** El toggle dark/light ya existe en el store Zustand, pero el CSS y los componentes están 100% diseñados para modo oscuro. Se necesita definir variables CSS para un tema claro (`--surface-50: #ffffff`, etc.) y aplicar `prefers-color-scheme` para detectar automáticamente la preferencia del SO del usuario.
+**Estado actual:** Toggle en store. Sin implementación de tema claro.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A75 · Landing page pública / Sitio institucional
+**¿Qué es?** La primera impresión de la consultora. Existe una landing en [(public)/page.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/(public)/page.tsx) (11 KB) y una página de [pricing/page.tsx](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/pricing/page.tsx) (5.4 KB). Deben estar completamente pulidas con: animaciones de scroll, testimoniales, CTA (Call to Action) para agendar demo, SEO optimizado y métricas de conversión.
+**Estado actual:** Landing y pricing existen. Necesitan pulido visual y contenido final.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A76 · Integración Stripe para facturación SaaS
+**¿Qué es?** Stripe procesa los pagos de los clientes de la consultora: suscripciones mensuales (retainers), pagos únicos (auditorías), créditos de uso de IA y facturación automática. Ya existe [lib/stripe/](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/lib/stripe) con `client.ts`, `config.ts` y `use-credits.ts`. Falta: portal de autoservicio del cliente, webhooks para eventos de Stripe y reconciliación de pagos.
+**Estado actual:** Librería básica configurada. Sin portal de billing ni webhooks completos.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A77 · Onboarding guiado para nuevos usuarios
+**¿Qué es?** Una secuencia de pasos que guía al nuevo usuario (cliente o consultor) la primera vez que entra: bienvenida personalizada, configuración del perfil de empresa, carga del primer estado financiero, tour interactivo de las funcionalidades principales y primera interacción con un agente IA. Reduce el tiempo entre registro y primer valor percibido.
+**Estado actual:** Sin implementación.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A78 · Sistema de Feature Flags
+**¿Qué es?** Mecanismo para habilitar o deshabilitar funcionalidades por tenant, rol o porcentaje de usuarios sin desplegar nuevo código. Permite lanzar funciones en beta a clientes seleccionados, hacer canary deployments y desactivar rápidamente funciones problemáticas. El middleware ya tiene lógica de kill-switch rudimentaria. Existe [core/feature-flags](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/core/feature-flags) y [admin/flags](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/admin/flags).
+**Estado actual:** Estructura creada. Sin UI de administración ni persistencia de flags.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A79 · Aplicación desktop con Electron
+**¿Qué es?** La app web empaquetada como aplicación de escritorio Windows (.exe) que arranca con un doble clic, sin necesidad de navegador. Electron ya está configurado en `package.json` con scripts `dev:electron`, `package:win` y `package:win-portable`, icono personalizado y builder config. Falta pulir el flujo de actualización automática (auto-updater).
+**Estado actual:** Electron configurado. Existe [electron/](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/electron). Build portable funcional.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A80 · SEO y meta tags para el sitio público
+**¿Qué es?** Optimización para motores de búsqueda: meta titles descriptivos (<60 chars), meta descriptions (<160 chars), Open Graph tags (para preview en LinkedIn/Twitter), structured data (JSON-LD para servicios de consultoría), sitemap.xml y robots.txt. Solo aplica a las rutas públicas (`(public)/`, `pricing/`). Next.js SSR facilita esto nativamente.
+**Estado actual:** Layout raíz tiene metadata básica. Sin tags específicas por página.
+**Esfuerzo:** 🟢 Bajo
+
+---
+
+## CATEGORÍA 13 · INTEGRACIONES EXTERNAS
+
+Conexiones con servicios y APIs de terceros.
+
+---
+
+### A81 · Integración SRI Ecuador (facturación electrónica)
+**¿Qué es?** Conexión directa con el Servicio de Rentas Internas de Ecuador para: validar facturas electrónicas (XML), verificar RUC de proveedores, consultar estatus de declaraciones y cruzar información tributaria. Requiere certificado digital y cumplimiento del formato XML del SRI.
+**Estado actual:** Sin implementación.
+**Esfuerzo:** 🔴 Alto
+
+---
+
+### A82 · Integración con APIs financieras (Yahoo Finance, FRED, BCE)
+**¿Qué es?** Conexiones automatizadas para obtener datos en tiempo real: precios de acciones y commodities (Yahoo Finance/yfinance), tasas de interés de la Fed y PIB de EE.UU. (FRED API gratuita) y tasas de interés del Banco Central del Ecuador (scraping del sitio del BCE). Alimentan el Hub de Inteligencia Económica.
+**Estado actual:** Solo documentación.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A83 · Integración Google Calendar / Outlook
+**¿Qué es?** Sincronización bidireccional de reuniones entre la plataforma y los calendarios de los consultores y clientes. Cuando se agenda una reunión en el COS, se crea automáticamente en Google Calendar/Outlook del consultor y del cliente. Cambios se sincronizan en ambas direcciones.
+**Estado actual:** Sin implementación.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A84 · Integración WhatsApp Business API
+**¿Qué es?** Envío de notificaciones, recordatorios y alertas al WhatsApp del cliente. No es chat bidireccional completo sino notificaciones templated: "Su declaración de IVA vence en 5 días", "Nuevo reporte disponible en su portal", "Reunión con su consultor mañana a las 10am".
+**Estado actual:** Sin implementación.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+### A85 · Integración con firma digital (FirmaEC / DocuSign)
+**¿Qué es?** Permite firmar contratos digitalmente con validez legal. FirmaEC es el estándar ecuatoriano emitido por el BCE. DocuSign es el estándar internacional. El flujo: consultor prepara contrato → cliente recibe email → firma en su dispositivo → contrato se almacena firmado e inmutable en MinIO.
+**Estado actual:** Sin implementación.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+## CATEGORÍA 14 · DOCUMENTACIÓN Y GOBERNANZA DEL PROYECTO
+
+Documentación técnica, procesos de equipo y governance.
+
+---
+
+### A86 · API Documentation (Swagger/OpenAPI)
+**¿Qué es?** Documentación interactiva y viva de todas las APIs del sistema. NestJS genera automáticamente Swagger UI con decoradores. FastAPI (Python) lo genera nativamente. Permite que cualquier desarrollador explore endpoints, parámetros y respuestas sin leer código.
+**Estado actual:** NestJS tiene capacidad nativa. Sin configuración de Swagger.
+**Esfuerzo:** 🟢 Bajo
+
+---
+
+### A87 · Crear CONTRIBUTING.md y convenciones de código
+**¿Qué es?** Documento que establece las reglas del juego para el equipo de desarrollo: convención de commits (Conventional Commits: `feat:`, `fix:`, `chore:`), estilo de código (Prettier config), estrategia de branching (trunk-based o GitFlow), proceso de code review, y definición de "done" para un feature.
+**Estado actual:** Sin `.prettierrc`, sin `CONTRIBUTING.md`, sin husky/lint-staged.
+**Esfuerzo:** 🟢 Bajo
+
+---
+
+### A88 · Crear .env.example documentado
+**¿Qué es?** Un archivo que lista todas las variables de entorno necesarias con descripciones y valores de ejemplo. Permite que un nuevo desarrollador configure su entorno local en minutos sin tener que descubrir cada variable por prueba y error. El `.env.example` del frontend existe ([apps/web/.env.example](file:///c:/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/.env.example)) pero faltan los de cada microservicio.
+**Estado actual:** `.env.example` parcial en web y ai-orchestrator.
+**Esfuerzo:** 🟢 Bajo
+
+---
+
+### A89 · Storybook para componentes UI
+**¿Qué es?** Una herramienta que renderiza cada componente de forma aislada en una galería visual. Permite: ver todos los estados de un KPICard (con datos, vacío, error, loading), probar responsividad, documentar props y validar cambios visuales. Fundamental para equipos >2 desarrolladores que trabajan en la misma UI.
+**Estado actual:** Sin instalación ni configuración.
+**Esfuerzo:** 🟡 Medio
+
+---
+
+---
+
+## RESUMEN CUANTITATIVO
+
+| Categoría | Acciones | 🟢 Bajo | 🟡 Medio | 🔴 Alto |
+| :--- | :---: | :---: | :---: | :---: |
+| 1. Datos y Persistencia | 7 | 1 | 5 | 1 |
+| 2. Backend NestJS | 9 | 0 | 3 | 6 |
+| 3. Motores Python | 7 | 0 | 2 | 5 |
+| 4. IA y Agentes | 7 | 0 | 4 | 3 |
+| 5. Portal Consultor | 9 | 1 | 7 | 1 |
+| 6. Portal Cliente | 4 | 0 | 4 | 0 |
+| 7. Portal Director | 5 | 0 | 5 | 0 |
+| 8. Seguridad | 6 | 2 | 3 | 1 |
+| 9. Documentos/Reportes | 3 | 0 | 2 | 1 |
+| 10. Testing/Observabilidad | 7 | 2 | 4 | 1 |
+| 11. DevOps/Infraestructura | 6 | 0 | 4 | 2 |
+| 12. UX/Comercialización | 10 | 1 | 9 | 0 |
+| 13. Integraciones | 5 | 0 | 4 | 1 |
+| 14. Documentación | 4 | 3 | 1 | 0 |
+| **TOTAL** | **89** | **10** | **57** | **22** |
+
+---
+
+## ORDEN DE EJECUCIÓN RECOMENDADO
+
+```
+BLOQUE 1 — CIMIENTOS (Semanas 1-4)
+├── A02 Migraciones Prisma
+├── A03 Seed data
+├── A04 RLS completo
+├── A31 Dashboard → datos reales
+├── A51 CSRF protection
+├── A53 XSS sanitization
+├── A54 Zod en todas las APIs
+├── A61 Sentry verificado
+├── A63 Health checks
+├── A64 Logging con Pino
+├── A87 CONTRIBUTING.md
+└── A88 .env.example
+
+BLOQUE 2 — BACKEND FUNCIONAL (Semanas 5-10)
+├── A08 Servicio clients
+├── A09 Servicio documents
+├── A10 Servicio finance
+├── A16 Event Bus RabbitMQ
+├── A17 Motor DCF real
+├── A18 Motor Monte Carlo completo
+├── A24 Conectar LangGraph ↔ frontend
+├── A32 Stress Simulator + backend
+├── A33 Data Hub validación server
+├── A37 Waterfall chart
+├── A38 Componentes de gráficos
+└── A52 Audit Log
+
+BLOQUE 3 — IA Y ENTREGA (Semanas 11-16)
+├── A06 Qdrant + embeddings
+├── A25 RAG con ISD
+├── A26 Agentes especialistas
+├── A27 Memoria persistente
+├── A55 Generador CIMs
+├── A56 Reportes auditoría PDF
+├── A57 Export Excel
+├── A40 Portal Cliente completo
+├── A44 Portal Director completo
+└── A58 Tests unitarios (continuo)
+
+BLOQUE 4 — ESCALA Y POLISH (Semanas 17-24)
+├── A01 Schema Prisma completo
+├── A05 Elasticsearch indexing
+├── A11 Workflow Engine
+├── A13 Motor Tributario
+├── A14 Motor Legal
+├── A19 Motor MIDAS
+├── A49 Keycloak SSO
+├── A65-70 DevOps pipeline completo
+├── A71-77 UX y comercialización
+└── A81-85 Integraciones externas
+```
+
+> [!IMPORTANT]
+> Este plan asume 3-5 desarrolladores full-time. Con 1 desarrollador, el tiempo se multiplica por 3-4x. Los Bloques 1 y 2 son **prerequisitos** para todo lo demás.

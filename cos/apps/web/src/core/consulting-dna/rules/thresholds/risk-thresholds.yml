@@ -1,0 +1,142 @@
+# Risk thresholds with severity levels
+# Each rule fires at a specific threshold level
+rules:
+  - id: risk-liq-001-critical
+    name: "Liquidez Corriente Crítica"
+    category: risk
+    condition: "financials.ratios.currentRatio < 0.5"
+    priority: 95
+    then:
+      action: alert
+      severity: critical
+      message: "Liquidez corriente crítica (< 0.5). Riesgo de insolvencia inminente."
+      recommendationId: rec-liq-001
+    enabled: true
+    tags: [liquidez, critico]
+
+  - id: risk-liq-001-high
+    name: "Liquidez Corriente Alta"
+    category: risk
+    condition: "financials.ratios.currentRatio < 1.0 and financials.ratios.currentRatio >= 0.5"
+    priority: 85
+    then:
+      action: alert
+      severity: warning
+      message: "Liquidez corriente en nivel alto de riesgo (1.0 - 0.5). Monitorear de cerca."
+      recommendationId: rec-liq-001
+    enabled: true
+    tags: [liquidez, alto]
+
+  - id: risk-liq-002-critical
+    name: "Prueba Ácida Crítica"
+    category: risk
+    condition: "financials.ratios.quickRatio < 0.3"
+    priority: 90
+    then:
+      action: alert
+      severity: critical
+      message: "Prueba ácida crítica (< 0.3). Dependencia total de inventarios para pagar deudas."
+      recommendationId: rec-liq-001
+    enabled: true
+    tags: [prueba-acida, critico]
+
+  - id: risk-sol-001-high
+    name: "Endeudamiento Patrimonial Alto"
+    category: risk
+    condition: "financials.ratios.debtToEquity > 2.0"
+    priority: 85
+    then:
+      action: alert
+      severity: warning
+      message: "Endeudamiento patrimonial alto (> 2.0). Evaluar desapalancamiento."
+      recommendationId: rec-sol-001
+    enabled: true
+    tags: [endeudamiento, alto]
+
+  - id: risk-sol-001-critical
+    name: "Endeudamiento Patrimonial Crítico"
+    category: risk
+    condition: "financials.ratios.debtToEquity > 3.0"
+    priority: 95
+    then:
+      action: alert
+      severity: critical
+      message: "Endeudamiento patrimonial crítico (> 3.0). Riesgo de insolvencia."
+      recommendationId: rec-sol-002
+    enabled: true
+    tags: [endeudamiento, critico]
+
+  - id: risk-sol-003-critical
+    name: "Cobertura de Intereses Crítica"
+    category: risk
+    condition: "financials.ratios.interestCoverage < 1.0"
+    priority: 95
+    then:
+      action: alert
+      severity: critical
+      message: "Cobertura de intereses crítica (< 1.0). La empresa no genera suficiente utilidad para pagar intereses."
+      recommendationId: rec-sol-002
+    enabled: true
+    tags: [cobertura, critico]
+
+  - id: risk-prof-001-critical
+    name: "Margen Neto Crítico"
+    category: risk
+    condition: "financials.ratios.netMargin < 0.03"
+    priority: 85
+    then:
+      action: alert
+      severity: warning
+      message: "Margen neto crítico (< 3%). Revisar estructura de costos urgente."
+      recommendationId: rec-prof-001
+    enabled: true
+    tags: [margen, critico]
+
+  - id: risk-prof-002-critical
+    name: "ROE Crítico"
+    category: risk
+    condition: "financials.ratios.roe < 0.05"
+    priority: 80
+    then:
+      action: alert
+      severity: warning
+      message: "ROE crítico (< 5%). Baja rentabilidad para el accionista."
+      recommendationId: rec-prof-001
+    enabled: true
+    tags: [roe, critico]
+
+  - id: risk-eff-001-high
+    name: "Rotación de Activos Baja"
+    category: risk
+    condition: "financials.ratios.assetTurnover < 0.5"
+    priority: 60
+    then:
+      action: alert
+      severity: info
+      message: "Rotación de activos baja. Activos no están generando ventas suficientes."
+    enabled: true
+    tags: [rotacion, activos]
+
+  - id: risk-eff-003-high
+    name: "Días de Cobro Elevados"
+    category: risk
+    condition: "financials.ratios.currentRatio < 0 and financials.ratios.quickRatio < 0.5"
+    priority: 75
+    then:
+      action: alert
+      severity: warning
+      message: "Posibles problemas de cobro. Evaluar cartera vencida y políticas de crédito."
+    enabled: true
+    tags: [cobro, cartera]
+
+  - id: risk-market-001-high
+    name: "Concentración de Clientes Alta"
+    category: risk
+    condition: "operational.customerRetention < 60"
+    priority: 65
+    then:
+      action: alert
+      severity: info
+      message: "Alta rotación de clientes. Evaluar satisfacción y retención."
+    enabled: true
+    tags: [concentracion, clientes]

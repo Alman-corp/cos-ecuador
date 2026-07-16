@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///mnt/c/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/loading.tsx"],"sourcesContent":["export default function RootLoading() {\n  return (\n    <div className=\"flex h-screen items-center justify-center bg-surface-900\">\n      <div className=\"flex flex-col items-center gap-4\">\n        <div className=\"h-8 w-8 animate-spin rounded-full border-2 border-accent-500 border-t-transparent\" />\n        <p className=\"text-sm text-surface-400\">Cargando...</p>\n      </div>\n    </div>\n  )\n}\n"],"names":["RootLoading","className"],"mappings":";;;;;;AAAe,SAASA;IACtB,qBACE,6PAAC;QAAIC,WAAU;kBACb,cAAA,6PAAC;YAAIA,WAAU;;8BACb,6PAAC;oBAAIA,WAAU;;;;;;8BACf,6PAAC;oBAAEA,WAAU;8BAA2B;;;;;;;;;;;;;;;;;AAIhD"}}]
+}

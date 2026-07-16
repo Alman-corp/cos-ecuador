@@ -1,0 +1,7 @@
+export * from "./contracts"
+export * from "./events"
+export * from "./version"
+export * from "./certification"
+export * from "./marketplace"
+export * from "./sdk"
+export { productRegistry } from "@/core/products"

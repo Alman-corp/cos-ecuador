@@ -1,0 +1,8 @@
+# Evaluation Harness - DeepSeek V4 Flash para COS Ecuador
+# Dependencias Python
+openai>=1.50.0
+anthropic>=0.30.0
+pyyaml>=6.0.1
+python-dotenv>=1.0.1
+rich>=13.7.0
+tiktoken>=0.7.0

@@ -1,0 +1,17 @@
+id: maturity_financial_management
+name: "Madurez en Gestión Financiera"
+description: "Evalúa la madurez financiera del cliente basada en ratios de liquidez, solvencia y recurrencia de ingresos"
+category: maturity
+condition: "financials.ratios.currentRatio > 1.5 and financials.ratios.quickRatio > 1 and financials.cashflow.runway > 12 and financials.revenue.recurring > 60"
+priority: 50
+then:
+  action: score
+  severity: info
+  message: "Excelente salud financiera. Liquidez sólida, runway extendido e ingresos recurrentes."
+  dimension: "Gestión Financiera"
+  score: 85
+enabled: true
+tags:
+  - madurez
+  - financiero
+  - liquidez

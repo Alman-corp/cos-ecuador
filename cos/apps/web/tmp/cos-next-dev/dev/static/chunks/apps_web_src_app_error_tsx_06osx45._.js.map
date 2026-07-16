@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///mnt/c/Users/hp/OneDrive/Desktop/TESIS/tesis%20carlos/CONSULTORIA/cos/apps/web/src/app/error.tsx"],"sourcesContent":["\"use client\"\n\nexport default function RootError({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string }\n  reset: () => void\n}) {\n  return (\n    <div className=\"flex h-screen items-center justify-center bg-surface-900\">\n      <div className=\"max-w-md text-center\">\n        <h1 className=\"text-2xl font-bold text-danger\">Error crítico</h1>\n        <p className=\"mt-2 text-sm text-surface-400\">\n          {error.message || \"Ocurrió un error inesperado.\"}\n        </p>\n        <button\n          onClick={reset}\n          className=\"mt-6 rounded-lg bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-500\"\n        >\n          Reintentar\n        </button>\n      </div>\n    </div>\n  )\n}\n"],"names":["RootError","error","reset","className","message","onClick"],"mappings":";;;;;AAAA;;AAEe,SAASA,UAAU,EAChCC,KAAK,EACLC,KAAK,EAIN;IACC,qBACE,4MAAC;QAAIC,WAAU;kBACb,cAAA,4MAAC;YAAIA,WAAU;;8BACb,4MAAC;oBAAGA,WAAU;8BAAiC;;;;;;8BAC/C,4MAAC;oBAAEA,WAAU;8BACVF,MAAMG,OAAO,IAAI;;;;;;8BAEpB,4MAAC;oBACCC,SAASH;oBACTC,WAAU;8BACX;;;;;;;;;;;;;;;;;AAMT;KAvBwBH"}}]
+}

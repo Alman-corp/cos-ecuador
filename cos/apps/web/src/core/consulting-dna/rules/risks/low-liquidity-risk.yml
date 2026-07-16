@@ -1,0 +1,15 @@
+id: risk_low_liquidity
+name: "Liquidez Corriente Insuficiente"
+description: "Evalúa si la empresa tiene activos corrientes suficientes para cubrir pasivos a corto plazo"
+category: risk
+condition: "financials.ratios.currentRatio < 1.2"
+priority: 85
+then:
+  action: alert
+  severity: warning
+  message: "Liquidez corriente por debajo de 1.2x. La empresa podría tener dificultades para cubrir obligaciones a corto plazo."
+  recommendationId: rec_liquidity_improvement
+enabled: true
+tags:
+  - liquidez
+  - corto-plazo

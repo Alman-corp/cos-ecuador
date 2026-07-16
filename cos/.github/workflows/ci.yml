@@ -1,0 +1,121 @@
+name: COS CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: "22"
+  TURBO_CACHE_KEY: turbo-${{ github.sha }}
+
+jobs:
+  lint:
+    name: Lint & TypeCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
+      - run: npm ci
+      - run: npm run lint
+      - name: TypeScript Check (web)
+        run: npx tsc --noEmit -p apps/web/tsconfig.json
+      - name: TypeScript Check (shared-types)
+        run: npx tsc --noEmit -p packages/shared-types/tsconfig.json
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.0-pg16
+        env:
+          POSTGRES_USER: cos
+          POSTGRES_PASSWORD: cos_secret
+          POSTGRES_DB: cos_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
+      - run: npm ci
+      - run: npx prisma generate
+        working-directory: packages/prisma-schema
+      - run: npx prisma migrate deploy
+        working-directory: packages/prisma-schema
+        env:
+          DATABASE_URL: "postgresql://cos:cos_secret@localhost:5432/cos_test"
+      - run: npm test --if-present
+        env:
+          DATABASE_URL: "postgresql://cos:cos_secret@localhost:5432/cos_test"
+          NODE_ENV: test
+          TOKEN_SECRET: "test-secret-key-that-is-at-least-32-chars!!"
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/.next
+
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker web image
+        run: docker build -t cos/web:latest -f infra/docker/Dockerfile.web .
+      - name: Build Docker identity service
+        run: docker build -t cos/identity:latest -f services/identity/Dockerfile services/identity/
+      - name: Build Docker clients service
+        run: docker build -t cos/clients:latest -f services/clients/Dockerfile services/clients/
+      - name: Build Docker documents service
+        run: docker build -t cos/documents:latest -f services/documents/Dockerfile services/documents/
+
+  deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.STAGING_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.STAGING_HOST }} >> ~/.ssh/known_hosts
+      - name: Deploy via Docker Compose
+        run: |
+          ssh ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'EOF'
+            cd /opt/cos
+            docker compose pull
+            docker compose up -d --force-recreate
+            docker system prune -f
+          EOF

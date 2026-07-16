@@ -57,10 +57,49 @@ services:
     build: ./services/bi
     ports: ["8012:8012"]
 
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: cos
+      RABBITMQ_DEFAULT_PASS: cos_secret
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  notifications:
+    build: ./services/notifications
+    ports: ["3010:3010"]
+    environment:
+      - PORT=3010
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - RABBITMQ_URL=amqp://cos:cos_secret@rabbitmq:5672
+      - SMTP_HOST=${SMTP_HOST:-smtp.sendgrid.net}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-apikey}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM:-noreply@cos-ecuador.com}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_WHATSAPP_FROM=${TWILIO_WHATSAPP_FROM:-+14155238886}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - NOTIFICATIONS_API_KEY=${NOTIFICATIONS_API_KEY}
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
   command-center:
     build: ./command-center
     ports: ["3000:3000"]
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_NOTIFICATIONS_URL=http://localhost:3010
     depends_on:
       - integration
+      - notifications

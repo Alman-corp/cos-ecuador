@@ -1,0 +1,15 @@
+id: eval-eff-001
+name: "Rotación de Activos"
+description: "Mide eficiencia en uso de activos para generar ventas."
+category: risk
+condition: "financials.ratios.assetTurnover < 1.0"
+priority: 60
+then:
+  action: alert
+  severity: info
+  message: "Rotación baja. Evaluar uso de activos fijos y optimización de inventarios."
+enabled: true
+tags:
+  - rotacion
+  - activos
+  - eficiencia

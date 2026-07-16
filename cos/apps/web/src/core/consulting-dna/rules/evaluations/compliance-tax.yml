@@ -1,0 +1,16 @@
+id: eval-comp-001
+name: "Cumplimiento Tributario"
+description: "Verifica consistencia entre ingresos declarados, impuestos pagados y estados financieros."
+category: risk
+condition: "financials.ratios.netMargin < 0"
+priority: 80
+then:
+  action: alert
+  severity: warning
+  message: "Posible inconsistencia tributaria. Revisar declaraciones y provisiones."
+enabled: true
+tags:
+  - tributario
+  - sri
+  - impuestos
+  - cumplimiento

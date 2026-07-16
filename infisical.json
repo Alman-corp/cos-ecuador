@@ -1,0 +1,89 @@
+{
+  "workspaceId": "cos-ecuador-prod",
+  "defaultEnvironment": "production",
+  "gitBranchToEnvironmentMapping": {
+    "main": "production",
+    "develop": "staging",
+    "feature/*": "development"
+  },
+  "secrets": {
+    "DATABASE_URL": {
+      "description": "PostgreSQL connection string (Supabase)",
+      "required": true,
+      "pattern": "^postgresql://.*"
+    },
+    "DIRECT_URL": {
+      "description": "Direct PostgreSQL URL for migrations",
+      "required": true
+    },
+    "NEXT_PUBLIC_SUPABASE_URL": {
+      "description": "Supabase project URL",
+      "required": true
+    },
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": {
+      "description": "Supabase anonymous key",
+      "required": true
+    },
+    "SUPABASE_SERVICE_ROLE_KEY": {
+      "description": "Supabase service role key (admin)",
+      "required": true,
+      "encrypted": true
+    },
+    "NEXT_PUBLIC_SENTRY_DSN": {
+      "description": "Sentry client-side DSN",
+      "required": true
+    },
+    "SENTRY_ORG": {
+      "description": "Sentry organization slug",
+      "required": true
+    },
+    "SENTRY_PROJECT": {
+      "description": "Sentry project slug",
+      "required": true
+    },
+    "SENTRY_AUTH_TOKEN": {
+      "description": "Sentry auth token for source maps",
+      "required": false,
+      "encrypted": true
+    },
+    "OPENAI_API_KEY": {
+      "description": "OpenAI API key for AI agents",
+      "required": false,
+      "encrypted": true
+    },
+    "RABBITMQ_URL": {
+      "description": "RabbitMQ connection string",
+      "required": false,
+      "pattern": "^amqp://.*"
+    },
+    "SMTP_HOST": {
+      "description": "SMTP server host for email notifications",
+      "required": false
+    },
+    "SMTP_PASS": {
+      "description": "SMTP password",
+      "required": false,
+      "encrypted": true
+    },
+    "TWILIO_ACCOUNT_SID": {
+      "description": "Twilio Account SID for WhatsApp/SMS",
+      "required": false,
+      "encrypted": true
+    },
+    "TWILIO_AUTH_TOKEN": {
+      "description": "Twilio Auth Token",
+      "required": false,
+      "encrypted": true
+    },
+    "SLACK_WEBHOOK_URL": {
+      "description": "Slack webhook URL for notifications",
+      "required": false,
+      "encrypted": true
+    },
+    "NOTIFICATIONS_API_KEY": {
+      "description": "API key for notifications service auth",
+      "required": false,
+      "encrypted": true
+    }
+  }
+}

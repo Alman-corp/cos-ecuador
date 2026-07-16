@@ -1,0 +1,17 @@
+id: opp_digital_transformation
+name: "Oportunidad de Transformación Digital"
+description: "Identifica empresas con alto crecimiento pero baja madurez digital"
+category: opportunity
+condition: "financials.revenue.growth > 20 and operational.digitalMaturity < 3 and operational.processAutomation < 30"
+priority: 80
+then:
+  action: recommend
+  severity: info
+  message: "Cliente con alto crecimiento pero baja madurez digital. Potencial de mejora de margen del 8-15% mediante automatización."
+  recommendationId: rec_digital_transformation_pack
+  potentialValue: 150000
+enabled: true
+tags:
+  - digital
+  - automatización
+  - crecimiento

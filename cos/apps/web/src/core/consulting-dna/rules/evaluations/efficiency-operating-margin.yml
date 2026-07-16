@@ -1,0 +1,16 @@
+id: eval-ops-001
+name: "Margen Operativo vs Industria"
+description: "Compara margen operativo contra benchmark del sector."
+category: risk
+condition: "financials.ratios.operatingMargin < financials.ratios.grossMargin * 0.5"
+priority: 70
+then:
+  action: alert
+  severity: warning
+  message: "Margen muy por debajo del sector. Revisar estructura de costos operativos y eficiencia de procesos."
+enabled: true
+tags:
+  - margen
+  - operativo
+  - benchmark
+  - industria

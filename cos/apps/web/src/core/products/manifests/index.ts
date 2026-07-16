@@ -1,0 +1,5 @@
+export { consultingManifest } from "./consulting"
+export { financialManifest } from "./financial"
+export { accountingManifest } from "./accounting"
+export { legalManifest } from "./legal"
+export { investmentManifest } from "./investment"

@@ -1,0 +1,18 @@
+# ============================================================
+# COS Identity Service — Multi-stage Docker build
+# ============================================================
+
+FROM node:22-alpine AS builder
+WORKDIR /app
+COPY services/identity/package.json ./
+RUN npm ci
+COPY services/identity/ .
+COPY packages/ ./packages/
+RUN npm run build
+
+FROM node:22-alpine AS runner
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+EXPOSE 3001
+CMD ["node", "dist/main.js"]

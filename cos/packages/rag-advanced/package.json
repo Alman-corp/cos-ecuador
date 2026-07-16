@@ -1,0 +1,30 @@
+{
+  "name": "@cos/rag-advanced",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/orchestrator.ts",
+  "types": "src/orchestrator.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-vm-modules --no-warnings ./node_modules/.bin/jest --config jest.config.cjs",
+    "evaluate": "npx tsx evaluation/scripts/run-evaluation.ts",
+    "benchmark": "npx tsx scripts/benchmark-rag.ts",
+    "migrate": "npx tsx scripts/migrate-rag.ts",
+    "rollback": "npx tsx scripts/rollback-rag.ts"
+  },
+  "dependencies": {
+    "@cos/rag": "*",
+    "@qdrant/js-client-rest": "^1.11.0",
+    "openai": "^4.50.0",
+    "cohere-ai": "^7.10.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5.7.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
+    "@types/jest": "^29.5.0"
+  }
+}

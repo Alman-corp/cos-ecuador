@@ -1,0 +1,16 @@
+id: eval-sol-002
+name: "Cobertura de Intereses"
+description: "Evalúa si la empresa genera suficiente utilidad operativa para cubrir gastos financieros."
+category: risk
+condition: "financials.ratios.interestCoverage < 2.0"
+priority: 90
+then:
+  action: alert
+  severity: critical
+  message: "Cobertura de intereses baja. Si < 1.5, riesgo crítico. La empresa no genera suficiente para pagar intereses."
+  recommendationId: rec-sol-002
+enabled: true
+tags:
+  - cobertura
+  - intereses
+  - ebit

@@ -1,0 +1,11 @@
+[auth]
+# Generate a token at https://sentry.io/settings/account/api/auth-tokens/
+# Required scopes: org:read, project:releases, project:sourcemaps
+token = YOUR_SENTRY_AUTH_TOKEN
+
+[defaults]
+org = YOUR_ORG_SLUG
+project = YOUR_PROJECT_SLUG
+
+[log]
+level = warn

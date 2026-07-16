@@ -1,0 +1,17 @@
+id: risk_high_debt_to_equity
+name: "Ratio Deuda/Patrimonio Crítico"
+description: "Detecta empresas con apalancamiento peligroso que puede llevar a insolvencia"
+category: risk
+condition: "financials.ratios.debtToEquity > 2.5 and financials.cashflow.operating < financials.balanceSheet.liabilities.shortTerm"
+priority: 95
+then:
+  action: alert
+  severity: critical
+  message: "Riesgo de insolvencia inminente. Ratio deuda/patrimonio crítico y flujo operativo no cubre obligaciones de corto plazo."
+  recommendationId: rec_debt_restructuring
+enabled: true
+validFrom: "2026-01-01T00:00:00Z"
+tags:
+  - deuda
+  - apalancamiento
+  - insolvencia

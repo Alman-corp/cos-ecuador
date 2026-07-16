@@ -1,0 +1,10 @@
+# AI & RAG files — require llm-engineer approval
+/src/lib/ai/                @llm-engineer
+/src/lib/openai-client.ts   @llm-engineer
+
+# Tax engine — core financial logic
+/src/lib/tax-engine/        @llm-engineer
+
+# Orchestrator & agent system
+/src/lib/orchestrator.ts    @llm-engineer
+/src/lib/prompts.ts         @llm-engineer

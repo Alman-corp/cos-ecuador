@@ -1,0 +1,666 @@
+Lo que planteas no es desarrollar una aplicación cualquiera. Estás hablando de construir un **Sistema Operativo para una Consultora (Consulting Operating System - COS)** que sustituya la mayor parte del trabajo operativo realizado por los empleados.
+
+El objetivo no debe ser únicamente digitalizar procesos, sino crear una empresa donde el conocimiento esté encapsulado en IA, automatización y motores de decisión.
+
+Después de revisar el documento que compartiste, veo que está muy orientado a la estrategia comercial y al modelo de negocio de la consultora.  Sin embargo, falta definir el corazón del proyecto: la arquitectura completa del software.
+
+---
+
+# VISIÓN
+
+## Objetivo
+
+Construir la consultora más automatizada posible.
+
+Donde un cliente pueda entrar y el sistema sea capaz de realizar automáticamente:
+
+* diagnóstico
+* auditoría
+* análisis financiero
+* análisis legal
+* análisis tributario
+* análisis administrativo
+* generación de informes
+* generación de estrategias
+* generación de planes
+* seguimiento
+* comunicación
+* documentación
+* recordatorios
+* reuniones
+* dashboards
+* KPIs
+* inteligencia artificial especializada
+
+Sin depender constantemente de personas.
+
+---
+
+# FILOSOFÍA
+
+La aplicación NO será un CRM.
+
+NO será un ERP.
+
+NO será un Dashboard.
+
+Será una mezcla de:
+
+CRM
++
+ERP
++
+Business Intelligence
++
+Document Management
++
+Workflow Engine
++
+AI
++
+Automation
++
+Knowledge Base
++
+Project Manager
++
+Client Portal
+
+Todo integrado.
+
+---
+
+# NOMBRE INTERNO
+
+Consulting OS
+
+o
+
+Command Center
+
+---
+
+# OBJETIVO GENERAL
+
+Automatizar el 95% del trabajo operativo.
+
+Los consultores solamente tomarán decisiones.
+
+Todo lo demás lo hará el sistema.
+
+---
+
+# ARQUITECTURA GENERAL
+
+La aplicación estará dividida en grandes módulos.
+
+# Módulo 1
+
+Identidad corporativa
+
+Gestiona
+
+Empresas
+
+Sucursales
+
+Marcas
+
+Departamentos
+
+Usuarios
+
+Permisos
+
+Roles
+
+Jerarquías
+
+Organigrama
+
+---
+
+# Módulo 2
+
+Clientes
+
+Empresas
+
+Contactos
+
+Representantes legales
+
+Accionistas
+
+Historial
+
+Reuniones
+
+Problemas
+
+Objetivos
+
+Contratos
+
+Facturación
+
+Tickets
+
+Documentos
+
+Cronología completa
+
+---
+
+# Módulo 3
+
+Motor Documental
+
+Aquí vive toda la documentación.
+
+Contratos
+
+RUC
+
+Estados Financieros
+
+XML
+
+Facturas
+
+IVA
+
+Balances
+
+Libros mayores
+
+PDF
+
+Excel
+
+Word
+
+Presentaciones
+
+Auditorías
+
+Todo indexado.
+
+---
+
+# Módulo 4
+
+Motor IA
+
+Este será el cerebro.
+
+Tendrá especialistas.
+
+Ejemplo
+
+IA Contable
+
+IA Tributaria
+
+IA Financiera
+
+IA Comercial
+
+IA Recursos Humanos
+
+IA Legal
+
+IA Riesgos
+
+IA Planeación
+
+IA Marketing
+
+IA Estrategia
+
+Cada una entrenada con prompts especializados.
+
+---
+
+# Módulo 5
+
+Workflow Engine
+
+Es el más importante.
+
+Aquí vive toda la lógica.
+
+Ejemplo
+
+Cliente sube balance.
+
+↓
+
+Sistema detecta.
+
+↓
+
+Extrae información.
+
+↓
+
+Clasifica.
+
+↓
+
+Analiza.
+
+↓
+
+Calcula ratios.
+
+↓
+
+Genera informe.
+
+↓
+
+Genera recomendaciones.
+
+↓
+
+Notifica consultor.
+
+↓
+
+Notifica cliente.
+
+↓
+
+Agenda reunión.
+
+Todo automático.
+
+---
+
+# Módulo 6
+
+Business Intelligence
+
+Dashboard Ejecutivo
+
+Liquidez
+
+EBITDA
+
+Capital de Trabajo
+
+ROA
+
+ROE
+
+Margen
+
+Cash Flow
+
+KPIs
+
+Comparaciones
+
+Forecast
+
+Machine Learning
+
+Predicciones
+
+Alertas.
+
+---
+
+# Módulo 7
+
+Gestión de proyectos
+
+Cada consultoría será un proyecto.
+
+Kanban
+
+Scrum
+
+Cronograma
+
+Gantt
+
+Dependencias
+
+Entregables
+
+Riesgos
+
+Costos
+
+Horas
+
+Recursos
+
+---
+
+# Módulo 8
+
+Automatizaciones
+
+Ejemplos.
+
+Si llega un correo
+
+↓
+
+Crear ticket
+
+↓
+
+Clasificar
+
+↓
+
+Responder
+
+↓
+
+Guardar PDF
+
+↓
+
+Extraer datos
+
+↓
+
+Actualizar CRM
+
+↓
+
+Notificar consultor
+
+---
+
+# Módulo 9
+
+Motor Financiero
+
+Este módulo prácticamente reemplaza a un analista financiero.
+
+Incluye:
+
+Valoración
+
+DCF
+
+WACC
+
+CAPM
+
+VPN
+
+TIR
+
+Liquidez
+
+Capital Trabajo
+
+Forecast
+
+Escenarios
+
+Stress Testing
+
+Optimización
+
+---
+
+# Módulo 10
+
+Motor Tributario
+
+IVA
+
+Renta
+
+Retenciones
+
+Anexos
+
+Cruces
+
+Alertas
+
+Calendario tributario
+
+Simulaciones
+
+---
+
+# Módulo 11
+
+Motor Legal
+
+Contratos
+
+Versionado
+
+Firma electrónica
+
+Obligaciones
+
+Cumplimiento
+
+Alertas
+
+Riesgos
+
+---
+
+# Módulo 12
+
+Centro de Inteligencia
+
+Es el cerebro empresarial.
+
+Recibe información de todos los módulos.
+
+Detecta
+
+Problemas
+
+Riesgos
+
+Oportunidades
+
+Fraude
+
+Desviaciones
+
+Incumplimientos
+
+Pérdidas
+
+Tendencias
+
+Hace recomendaciones automáticamente.
+
+---
+
+# Módulo 13
+
+Portal Cliente
+
+El cliente verá únicamente:
+
+Indicadores
+
+Proyectos
+
+Documentos
+
+Reportes
+
+Mensajes
+
+Facturas
+
+Reuniones
+
+IA
+
+Todo personalizado.
+
+---
+
+# Módulo 14
+
+Portal Consultor
+
+El consultor tendrá:
+
+Agenda
+
+Clientes
+
+Alertas
+
+IA
+
+Proyectos
+
+Documentos
+
+KPIs
+
+Chat
+
+Automatizaciones
+
+---
+
+# Módulo 15
+
+Portal Director
+
+El CEO verá toda la consultora.
+
+Rentabilidad
+
+Consultores
+
+Productividad
+
+Clientes
+
+Ingresos
+
+Flujo de Caja
+
+Pipeline
+
+Ventas
+
+IA
+
+Riesgos
+
+---
+
+# BASE DE DATOS
+
+Este proyecto fácilmente supera las **250–350 tablas** normalizadas.
+
+Entre ellas:
+
+* Usuarios
+* Empresas
+* Clientes
+* Contactos
+* Documentos
+* Proyectos
+* Tareas
+* Contratos
+* Facturas
+* Indicadores
+* Riesgos
+* Alertas
+* Workflows
+* Agentes IA
+* Prompts
+* Logs
+* Auditorías
+* Versiones
+* Integraciones
+
+Cada tabla con auditoría, versionado y control de acceso.
+
+---
+
+# INTELIGENCIA ARTIFICIAL
+
+No utilizar una sola IA.
+
+Crear un ecosistema de agentes especializados.
+
+Por ejemplo:
+
+* Agente Contable
+* Agente Financiero
+* Agente Tributario
+* Agente Legal
+* Agente Comercial
+* Agente Marketing
+* Agente Recursos Humanos
+* Agente Riesgos
+* Agente Planeación Estratégica
+* Agente Auditor
+
+Todos coordinados por un **Agente Orquestador**, que decide cuál especialista intervenir según la tarea.
+
+---
+
+# TECNOLOGÍA RECOMENDADA
+
+* **Frontend:** Next.js + React + Tailwind CSS
+* **Backend:** NestJS
+* **Base de datos:** PostgreSQL
+* **ORM:** Prisma
+* **Autenticación:** Keycloak
+* **Cache:** Redis
+* **Mensajería:** RabbitMQ
+* **Búsqueda documental:** Elasticsearch
+* **Almacenamiento:** MinIO
+* **IA:** APIs de modelos de lenguaje y modelos especializados, con un orquestador propio.
+* **Contenedores:** Docker
+* **Orquestación:** Kubernetes
+
+---
+
+# PLAN DE DESARROLLO
+
+Este proyecto es demasiado grande para abordarlo como un solo desarrollo. La forma profesional es dividirlo en fases:
+
+1. **Fase 0 – Arquitectura empresarial:** visión, procesos, casos de uso, requisitos y modelo de datos.
+2. **Fase 1 – Núcleo:** autenticación, empresas, usuarios, clientes, documentos y permisos.
+3. **Fase 2 – Operación:** CRM, gestión documental, proyectos y workflows.
+4. **Fase 3 – Inteligencia:** dashboards, BI, motores financieros y tributarios.
+5. **Fase 4 – IA:** agentes especializados y automatización avanzada.
+6. **Fase 5 – Integraciones:** correo, calendarios, ERPs, facturación electrónica, firma digital y mensajería.
+7. **Fase 6 – Escalabilidad:** alta disponibilidad, monitoreo, seguridad, auditoría y despliegue multinube.
+
+## Mi recomendación
+
+Si tu objetivo es construir una plataforma capaz de reemplazar la mayor parte del trabajo operativo de una consultora, el primer entregable **no debería ser código**. Debería ser un **Blueprint Empresarial** de aproximadamente **1.500 a 3.000 páginas**, equivalente al nivel de documentación que utilizan las grandes empresas antes de desarrollar un sistema crítico.
+
+Ese blueprint incluiría:
+
+* Arquitectura empresarial completa.
+* Más de 500 procesos de negocio documentados.
+* Modelado de datos (ERD) con cientos de entidades.
+* Casos de uso y reglas de negocio.
+* Arquitectura de microservicios.
+* Diseño UX/UI de todas las pantallas.
+* Especificación de APIs.
+* Catálogo de automatizaciones.
+* Diseño de los agentes de IA y sus responsabilidades.
+* Plan maestro de desarrollo y despliegue.
+
+Con una base así, el desarrollo puede ejecutarse de forma ordenada durante meses o años sin perder coherencia, y el sistema podrá crecer hasta convertirse en la plataforma central de una consultora de gran escala.

@@ -1,0 +1,16 @@
+id: eval-sol-001
+name: "Evaluación de Endeudamiento"
+description: "Mide el nivel de deuda respecto al patrimonio. Un ratio alto indica dependencia de financiamiento externo."
+category: risk
+condition: "financials.ratios.debtToEquity > 1.0"
+priority: 85
+then:
+  action: alert
+  severity: warning
+  message: "Endeudamiento elevado. Si > 2.0, riesgo alto. Recomendar desapalancamiento y revisión de estructura de capital."
+  recommendationId: rec-sol-001
+enabled: true
+tags:
+  - endeudamiento
+  - apalancamiento
+  - deuda

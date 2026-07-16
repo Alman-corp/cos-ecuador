@@ -1,0 +1,17 @@
+id: eval-prof-001
+name: "Evaluación de Rentabilidad"
+description: "Analiza margen neto, ROE y ROA para determinar eficiencia en generación de utilidades."
+category: risk
+condition: "financials.ratios.netMargin < 0.05 or financials.ratios.roe < 0.08"
+priority: 80
+then:
+  action: alert
+  severity: warning
+  message: "Rentabilidad baja. Si margen neto < 5%, revisar estructura de costos. Si ROE < 8%, evaluar eficiencia del capital invertido."
+  recommendationId: rec-prof-001
+enabled: true
+tags:
+  - rentabilidad
+  - margen
+  - roe
+  - roa

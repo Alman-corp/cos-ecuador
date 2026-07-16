@@ -1,0 +1,16 @@
+id: eval-liq-002
+name: "Prueba Ácida"
+description: "Evalúa liquidez excluyendo inventarios. Más conservadora que la liquidez corriente."
+category: risk
+condition: "financials.ratios.quickRatio < 1.0"
+priority: 80
+then:
+  action: alert
+  severity: warning
+  message: "Prueba ácida baja. Si < 0.5, alerta crítica. La empresa depende de inventarios para pagar deudas."
+  recommendationId: rec-liq-001
+enabled: true
+tags:
+  - liquidez
+  - prueba-acida
+  - inventario

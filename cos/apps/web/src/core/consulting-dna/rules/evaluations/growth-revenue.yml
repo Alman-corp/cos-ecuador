@@ -1,0 +1,15 @@
+id: eval-growth-001
+name: "Crecimiento de Ingresos"
+description: "Evalúa la tendencia de crecimiento de ingresos vs inflación y mercado."
+category: risk
+condition: "financials.revenue.growth < 0"
+priority: 70
+then:
+  action: alert
+  severity: warning
+  message: "Crecimiento negativo de ingresos. Revisar estrategia comercial y competitividad."
+enabled: true
+tags:
+  - crecimiento
+  - ingresos
+  - mercado

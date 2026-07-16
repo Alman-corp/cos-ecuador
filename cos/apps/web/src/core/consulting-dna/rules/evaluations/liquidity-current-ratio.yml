@@ -1,0 +1,16 @@
+id: eval-liq-001
+name: "Evaluación de Liquidez Corriente"
+description: "Evalúa la capacidad de la empresa para cubrir obligaciones a corto plazo usando el ratio de liquidez corriente."
+category: risk
+condition: "financials.ratios.currentRatio < 1.5"
+priority: 85
+then:
+  action: alert
+  severity: warning
+  message: "Liquidez corriente baja. Si < 1.0, riesgo crítico. Recomendar renegociación de deuda corto plazo y reducción de inventario."
+  recommendationId: rec-liq-001
+enabled: true
+tags:
+  - liquidez
+  - corto-plazo
+  - capital-de-trabajo
