@@ -2647,3 +2647,80 @@ model AgentFeedback {
   @@index([companyId, rating])
   @@map("agent_feedback")
 }
+
+// ============================================================
+// 29. CHAT AGÉNTICO CON LANGGRAPH + MEMORIA
+// ============================================================
+
+model ChatSession {
+  id              String        @id @default(uuid()) @db.Uuid
+  companyId       String        @map("company_id") @db.Uuid
+  company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId          String        @map("user_id") @db.Uuid
+  clientId        String?       @map("client_id") @db.Uuid
+  title           String?
+  primaryAgent    String?       @map("primary_agent")
+  status          String        @default("ACTIVE")
+  totalTokens     Int           @default(0) @map("total_tokens")
+  totalCostUsd    Decimal       @default(0) @map("total_cost_usd") @db.Decimal(10, 6)
+  initialContext  Json?         @map("initial_context")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  lastMessageAt   DateTime?     @map("last_message_at")
+
+  messages        ChatMessage[]
+  feedbacks       AgentFeedback[]
+
+  @@index([companyId, userId, status])
+  @@index([companyId, clientId])
+  @@index([createdAt])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id               String        @id @default(uuid()) @db.Uuid
+  companyId        String        @map("company_id") @db.Uuid
+  sessionId        String        @map("session_id") @db.Uuid
+  session          ChatSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role             String
+  content          String        @db.Text
+  reasoning        String?       @db.Text
+  agentUsed        String?       @map("agent_used")
+  modelUsed        String?       @map("model_used")
+  toolsExecuted    Json?         @map("tools_executed")
+  promptTokens     Int           @default(0) @map("prompt_tokens")
+  completionTokens Int           @default(0) @map("completion_tokens")
+  totalTokens      Int           @default(0) @map("total_tokens")
+  costUsd          Decimal       @default(0) @map("cost_usd") @db.Decimal(10, 6)
+  latencyMs        Int?          @map("latency_ms")
+  firstTokenMs     Int?          @map("first_token_ms")
+  lastTokenMs      Int?          @map("last_token_ms")
+  citationIds      Json?         @default("[]") @map("citation_ids")
+  metadata         Json?
+  createdAt        DateTime      @default(now()) @map("created_at")
+
+  toolLogs         ToolCallLog[]
+
+  @@index([companyId, sessionId])
+  @@index([companyId, role, createdAt])
+  @@map("chat_messages")
+}
+
+model ToolCallLog {
+  id               String        @id @default(uuid()) @db.Uuid
+  companyId        String        @map("company_id") @db.Uuid
+  messageId        String        @map("message_id") @db.Uuid
+  message          ChatMessage   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  toolName         String        @map("tool_name")
+  toolInput        Json          @map("tool_input")
+  toolOutput       Json?         @map("tool_output")
+  success          Boolean
+  errorMessage     String?       @map("error_message")
+  executionTimeMs  Int           @default(0) @map("execution_time_ms")
+  sequenceNumber   Int           @default(0) @map("sequence_number")
+  createdAt        DateTime      @default(now()) @map("created_at")
+
+  @@index([companyId, messageId])
+  @@index([companyId, toolName])
+  @@map("tool_call_logs")
+}
