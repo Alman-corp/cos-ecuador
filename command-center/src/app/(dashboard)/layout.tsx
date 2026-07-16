@@ -21,6 +21,15 @@ const PAGE_NAMES: Record<string, string> = {
   "/economic-hub": "Economic Hub",
   "/platform": "Plataforma",
   "/ecosystem": "Ecosistema",
+  "/consultor/tributario": "Tributario Ecuador",
+  "/consultor/tributario/sri": "SRI Envíos",
+  "/consultor/tributario/simulador-iva": "Simulador IVA",
+  "/consultor/tributario/retenciones": "Retenciones",
+  "/consultor/tributario/renta": "Renta Anual",
+  "/consultor/tributario/calendario": "Calendario SRI",
+  "/consultor/tributario/ice": "ICE",
+  "/consultor/tributario/anexos": "Anexos / ATS",
+  "/consultor/tributario/cruces": "Cruces",
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
